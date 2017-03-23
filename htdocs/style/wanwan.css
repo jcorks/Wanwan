@@ -1,0 +1,12 @@
+@font-face {
+    font-family: wanwan_font_main;
+    src: url('./style-assets/uni.ttf');
+}
+
+
+* {
+    font-family: wanwan_font_main;
+    font-size: 20px;
+    background-color: rgb(32, 32, 32);
+    color: rgb(200, 200, 200);
+}
