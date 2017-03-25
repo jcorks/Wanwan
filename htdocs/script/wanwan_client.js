@@ -30,6 +30,7 @@ Wanwan.Client.Post = function(message) {
     out.push("DaUser");
     out.push(message);
     out.push("Core.Speech");
+    out.push("test");
 
 
     var str = Wanwan.Server.Hexify(out);

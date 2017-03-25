@@ -26,8 +26,8 @@ void wanwan_string_set(wanwan_String *, const char * data);
 
 // allocates a safe copy of the contents
 // the return value should be freed
-char * wanwan_string_get_cstr(const wanwan_String *);
-
+const char * wanwan_string_get_cstr (const wanwan_String *);
+char *       wanwan_string_copy_cstr(const wanwan_String *);
 
 
 wanwan_String * wanwan_string_copy(const wanwan_String*);

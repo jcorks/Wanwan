@@ -76,7 +76,12 @@ uint16_t wanwan_string_length(const wanwan_String * str) {
     return str->length;
 }
 
-char * wanwan_string_get_cstr(const wanwan_String * str) {
+const char * wanwan_string_get_cstr(const wanwan_String * str) {
+    if (!WANWAN_STRING_VALID(str)) return "";
+    return str->data;
+}
+
+char * wanwan_string_copy_cstr(const wanwan_String * str) {
     if (!WANWAN_STRING_VALID(str)) return strdup("");
     char * out = calloc(1, str->length+1);
     if (!out) return strdup("");
