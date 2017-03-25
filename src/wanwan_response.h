@@ -5,14 +5,23 @@
 #include "wanwan_server.h"
 
 
+// Notes:
+//
+// Try not to send server information; let the server determine 
+// if the client is compatible
+
 typedef enum {
-    wanwna_Response_Info,
-    wanwan_Response_NewMessage
+    wanwan_Response_AcceptClient,
+    wanwan_Response_DenyClient, 
+    wanwan_Response_SendMessage,
+    wanwan_Response_SendSystemMessage, // usues reserved color / animation
+    wanwan_Response_RoomList,
+    wanwan_Response_Error, // request failed, let the user know.
 
 } wanwan_ResponseType;
 
 
-void wanwan_response_push(wanwan_ResponseType, wanwan_Client *, wanwan_Server *);
+void wanwan_response_push_message(uint64_t index);
 void wanwan_response_send();
 
 #endif

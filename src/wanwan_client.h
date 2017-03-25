@@ -5,12 +5,21 @@
 
 typedef struct wanwan_Client wanwan_Client;
 
-wanwan_Client * wanwan_client_create(const char * name, const char * colorString, const char * IP);
-wanwan_Client * wanwan_client_create_from_data(const char * hexData);
+
+typedef enum {
+    wanwan_Request_ServerQuery, // response with either Accept / Deny. Incites checking of server compatability
+    wanwan_Request_PostMessage, // response: add room message and cast to all
+    wanwan_Request_RoomList,    // response: room list
+    wanwan_Request_Invalid,     // the data from the client wasn't valid in some way.
+} wanwan_ClientRequest;
+
+wanwan_Client * wanwan_client_create(const char * query, const char * ip);
 
 const wanwan_String * wanwan_client_get_name(const wanwan_Client *);
 const wanwan_String * wanwan_client_get_color(const wanwan_Client *);
 const wanwan_String * wanwan_client_get_ip(const wanwan_Client *);
+const wanwan_String * wanwan_client_get_message(const wanwan_Client *);
+wanwan_ClientRequest wanwan_client_get_request();
 
 
 #endif

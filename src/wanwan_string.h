@@ -11,6 +11,7 @@ typedef struct wanwan_String wanwan_String;
 
 // returns a "safe" copy of the given string.
 wanwan_String * wanwan_string_create(const char *);
+wanwan_String * wanwan_string_create_format(const char *, ...);
 
 void wanwan_string_destroy(wanwan_String *);
 
@@ -38,7 +39,7 @@ wanwan_String * wanwan_string_concatenate_format(wanwan_String * A, const char *
 
 
 wanwan_String * wanwan_string_hexify(wanwan_String **, uint32_t count);
-void wanwan_string_dehexify(const wanwan_String * src, wanwan_String ** dest, uint32_t * count);
+void wanwan_string_dehexify(const wanwan_String * src, wanwan_String *** dest, uint32_t * count);
 
 
 

@@ -7,9 +7,8 @@
 
 /* formatting rules
 
-    NewMessage:
-
-        0NewMessage0[username]0[message]0[colorstring]0[animation]00
+    SendMessage:
+        0WANWANMSG00[username]00[message]00[colorstring]00[animation]00[message index integer]0
 
 
 
@@ -33,11 +32,11 @@ static void general_response_init() {
 
 
 
-static void general_response_push(wanwan_String * content) {
+static void general_response_push(wanwan_String ** content, uint32_t elements) {
     if (!output)
         general_response_init();
 
-    wanwan_String * hexContent = wanwan_string_hexify(&content, 1);
+    wanwan_String * hexContent = wanwan_string_hexify(content, elements);
     char * hexContentStr = wanwan_string_get_cstr(hexContent);
     wanwan_string_concatenate_format(output,
         "Wanwan.Server.Messages.push('%s')\n", hexContentStr
@@ -49,12 +48,26 @@ static void general_response_push(wanwan_String * content) {
 
 
 void wanwan_response_push(wanwan_ResponseType type, wanwan_Client * c, wanwan_Server * s) {
-    wanwan_String * message = wanwan_string_create("");
+    wanwan_String * message[6];
+    char * ask = getenv("QUERY_STRING");
 
+    message[0] = wanwan_string_create("WANWANMSG");
+    message[1] = wanwan_string_create("UserName");
+    //message[2] = wanwan_string_create("Uhhhh is this working?? :(");
+    message[2] = wanwan_string_create(ask ? ask : "(null)");
+    message[3] = wanwan_string_create("#CCC");
+    message[4] = wanwan_string_create("Core.Speech");
+    message[5] = wanwan_string_create("10");
 
-    wanwan_string_concatenate_format(message, "Hello!!! %d", rand());
-    general_response_push(message);
-    wanwan_string_destroy(message);
+    general_response_push(message, 6);
+
+    wanwan_string_destroy(message[0]);
+    wanwan_string_destroy(message[1]);
+    wanwan_string_destroy(message[2]);
+    wanwan_string_destroy(message[3]);
+    wanwan_string_destroy(message[4]);
+    wanwan_string_destroy(message[5]);
+
     // debugging
 }
 

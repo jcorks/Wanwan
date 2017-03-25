@@ -20,9 +20,22 @@ Wanwan.Client.Post = function(message) {
     }
 
     Wanwan.Client.ScriptController    = document.createElement("script");
-    Wanwan.Client.ScriptController.id = "WANWAN_post_dummy";
+    Wanwan.Client.ScriptController.id = "WANWAN_post_widget";
     Wanwan.Client.ScriptController.setAttribute("type", "text/javascript");
-    Wanwan.Client.ScriptController.setAttribute("src", Wanwan.Server.URL);
+
+
+    // form basic message
+    var out = [];
+    out.push("WANWANPOST");
+    out.push("DaUser");
+    out.push(message);
+    out.push("Core.Speech");
+
+
+    var str = Wanwan.Server.Hexify(out);
+    console.log("I want to send ->" + str);
+    
+    Wanwan.Client.ScriptController.setAttribute("src", Wanwan.Server.URL+"?"+str);
     
     var body = document.body;
     body.appendChild(Wanwan.Client.ScriptController);

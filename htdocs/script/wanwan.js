@@ -17,10 +17,10 @@ Wanwan.Init = function(canvasID, serverCGIURL) {
 Wanwan.Input = function(event) {
     if (event.keyCode == 13) {
         
-        /*
+        
         textContent = document.getElementById("command").value; 
         document.getElementById("command").value = "";
-
+        /*
 
         Wanwan.Canvas.AddText(
             "Test", textContent,
@@ -28,7 +28,7 @@ Wanwan.Input = function(event) {
             "Core.Wavey"
         );
         */
-        Wanwan.Client.Post("Test");
+        Wanwan.Client.Post(textContent);
     }
     
 }
