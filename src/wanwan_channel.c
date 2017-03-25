@@ -5,11 +5,14 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define WANWAN_CHANNEL_FILE_PREFIX "ww_"
+//#define WANWAN_CHANNEL_FILE_PREFIX "ww_"
+#define WANWAN_CHANNEL_FILE_PREFIX "/home/jc/WANWAN/ww_"
 #define WANWAN_CHANNEL_INDEX_SUFFIX "_index"
 #define WANWAN_CHANNEL_INFO_SUFFIX "_info"
 #define WANWAN_CHANNEL_LOCK_SUFFIX "_lock"
 #define WANWAN_CHANNEL_HISTORY_SUFFIX "_history"
+
+
 
 /////
 /*
@@ -212,7 +215,7 @@ void wanwan_channel_write_message(
     FILE * index = fopen(c->indexFile, "rb");
     get_index_table(index, &indexData, &indexLength);
     fclose(index);
-    wanwan_string_concatenate_format(message[5], "%"PRIu64"", indexLength);
+    wanwan_string_concatenate_format(message[5], "%"PRIu64"", indexLength+1);
     
 
     // convert message to single hex string and insert it in channel's history

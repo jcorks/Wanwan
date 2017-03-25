@@ -2,8 +2,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <inttypes.h>
 
-#define REQUEST_POST "WANWANPOST"
+#define REQUEST_POST   "WANWANPOST"
+#define REQUEST_UPDATE "WANWANUPDT"
 
 
 
@@ -14,6 +17,7 @@ struct wanwan_Client {
     wanwan_String * message;
     wanwan_String * animation;
     wanwan_Channel * channel;
+    uint64_t index;
     wanwan_ClientRequest request;
 };
 
@@ -26,6 +30,7 @@ wanwan_Client * wanwan_client_create(
 
     uint32_t i;
     wanwan_Client * c = calloc(1, sizeof(wanwan_Client));
+    c->index       = UINT64_MAX;
     c->ip          = wanwan_string_create(ip);
     c->request     = wanwan_Request_Invalid;
     c->channel     = wanwan_channel_create("");
@@ -47,12 +52,14 @@ wanwan_Client * wanwan_client_create(
     const char * name = wanwan_string_get_cstr(input[0]);
     
 
-    // PostMessage format:
-    //  
-    //  0 WANWANPOST 0 UserName 0 MessageText 0 Animation Name 0 Channel 0
-    //
-    if (!strcmp(name, REQUEST_POST)) {
-        if (length != 4) goto L_FAIL;
+    if (!strcmp(name, REQUEST_UPDATE)) {
+        if (length != 3) goto L_FAIL;
+        c->request   = wanwan_Request_Update;
+        c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[1]));
+        if (!sscanf(wanwan_string_get_cstr(input[2]), "%"PRIu64, &c->index)) goto L_FAIL; 
+
+    } else if(!strcmp(name, REQUEST_POST)) {
+        if (length != 5) goto L_FAIL;
         c->request   = wanwan_Request_PostMessage;      
         c->name      = wanwan_string_copy(input[1]);
         c->message   = wanwan_string_copy(input[2]);
@@ -101,3 +108,7 @@ const wanwan_Channel * wanwan_client_get_channel(const wanwan_Client * c) {
     return c->channel;
 }
 
+
+uint64_t wanwan_client_get_index(const wanwan_Client * c) {
+    return c->index;
+}

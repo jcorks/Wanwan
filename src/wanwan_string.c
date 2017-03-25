@@ -148,13 +148,14 @@ wanwan_String * wanwan_string_hexify(wanwan_String ** A, uint32_t count) {
 }
 
 
-static wanwan_String ** dehex_array_append(wanwan_String** arr, uint32_t * length, wanwan_String * value) {
+static wanwan_String ** dehex_array_append(wanwan_String** arr, uint32_t * length, const wanwan_String * value) {
     wanwan_String ** out = calloc(sizeof(wanwan_String*), *length+1);
     if (!*length) {
-        out[0] = value;
+        out[0] = wanwan_string_copy(value);
     } else {
         memcpy(out, arr, sizeof(wanwan_String*)*(*length));
         free(arr);
+        out[*length] = wanwan_string_copy(value);
     }
     
     (*length)++;
@@ -164,10 +165,10 @@ static wanwan_String ** dehex_array_append(wanwan_String** arr, uint32_t * lengt
 static int convert_hex_to_uint8(const char * str, uint32_t * iter, uint32_t length, uint8_t * value) {
     if (*iter+1 >= length) return 0;
     *value = 0;
-    unsigned int t;
-    if (!sscanf(str, "%02x", &t)) return 0;
+    unsigned int t = 0;
+    if (!sscanf(str+*iter, "%02x", &t)) return 0;
     *value = (uint8_t)t;
-    *iter=2;
+    (*iter)+=2;
     return 1;
 }
 
@@ -186,7 +187,7 @@ void wanwan_string_dehexify(const wanwan_String * src,
     inChar[1] = 0;
 
     uint8_t value;
-    for(i = 0; i < src->length; ++i) {
+    while(i < src->length) {
         if (!convert_hex_to_uint8(src->data, &i, src->length, &value)) goto L_FAIL;
         if (value != 0) goto L_FAIL;
 
@@ -211,7 +212,6 @@ void wanwan_string_dehexify(const wanwan_String * src,
 
 
   L_FAIL:
-    wanwan_string_destroy(token);   
     for(i = 0; i < *count; ++i) {
         wanwan_string_destroy((*dest)[i]);
     }

@@ -13,7 +13,6 @@
 typedef enum {
     wanwan_Response_AcceptClient,
     wanwan_Response_DenyClient, 
-    wanwan_Response_SendMessage,
     wanwan_Response_SendSystemMessage, // usues reserved color / animation
     wanwan_Response_RoomList,
     wanwan_Response_Error, // request failed, let the user know.
@@ -21,7 +20,8 @@ typedef enum {
 } wanwan_ResponseType;
 
 
-void wanwan_response_push_message(uint64_t index);
+// adds a raw string to be sent to the client
+void wanwan_response_push_compiled_message(const wanwan_String *);
 void wanwan_response_send();
 
 #endif

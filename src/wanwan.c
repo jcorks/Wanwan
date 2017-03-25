@@ -11,50 +11,24 @@
 
 
 int main(int argc, char **argv) {
-
-    /*    
-    wanwan_String * str = wanwan_string_create("test");
-
-    wanwan_Channel * c = wanwan_channel_create(str);
-    if (!wanwan_channel_exists(c))
-        wanwan_channel_initialize(c, "This is a test");
-    printf("%s\n", wanwan_channel_exists(c) ? "It exists" : "It doesn't exist");
-
-    str = (wanwan_String *)wanwan_channel_get_name(c);
-    printf("Name: %s\n", wanwan_string_get_cstr(str));
-
-    str = (wanwan_String *)wanwan_channel_get_description(c);
-    printf("Desc: %s\n", wanwan_string_get_cstr(str));
-
-
-    srand(time(NULL));
+   
     
-    wanwan_string_set(str, "");
-    wanwan_string_concatenate_format(str, "Hello %d", rand());
-    wanwan_channel_write_message(c, str);
-
-
-    wanwan_String ** messages = NULL;
-    uint64_t messageCount   = 0;
-    uint64_t index = wanwan_channel_get_messages_since(c, 10, &messages, &messageCount);
-    uint64_t i = 0;
-    for(; i < messageCount; ++i) {
-        char * message = wanwan_string_get_cstr(messages[i]);
-        printf("Message%llu  : %s\n", i, message);   
-        free(message);
+    {
+        wanwan_Channel * c = wanwan_channel_create("test");
+        if (!wanwan_channel_exists(c)) {
+            wanwan_channel_initialize(c, "A testing channel.");
+        }
     }
-
-    printf("(index %llu)\n", index);
-    */    
-    
-
     
     char * query = getenv("QUERY_STRING");
     char * ip    = getenv("REMOTE_ADDR");
+    //char * query = "0057414e57414e504f53540000446155736572000048656c6c6f2c20776f726c64210000436f72652e53706565636800007465737400";
+    //char * query = "0057414e57414e5550445400007465737400003000"; // update test;
+    //char * ip    = "127.0.0.1"; ////getenv("REMOTE_ADDR");
 
 
     wanwan_Client * client = wanwan_client_create(query, ip);
-    wanwan_Server * server = wanwan_server_create();
+    //wanwan_Server * server = wanwan_server_create();
 
 
     switch(wanwan_client_get_request(client)) {
@@ -70,13 +44,40 @@ int main(int argc, char **argv) {
             wanwan_client_get_color     (client),
             wanwan_client_get_animation (client)
         );
+        wanwan_response_send();
         break;
+        
+
+
+    // give the client all the messages they don't have yet
+      case wanwan_Request_Update: {
+        wanwan_String ** messages = NULL;
+        uint64_t messageCount   = 0;
+        wanwan_channel_get_messages_since(
+            wanwan_client_get_channel(client), 
+            wanwan_client_get_index(client), 
+            &messages, 
+            &messageCount
+        );
+
+
+        uint64_t i = 0;
+
+        for(; i < messageCount; ++i) {
+            wanwan_response_push_compiled_message(messages[i]);
+        }
+        wanwan_response_send();
+
+        break;
+       }
         
       default:
         // try to fake the CGI not existing
         printf("Status: 404 Not Found\n");
         return 0;            
     }
+
+
     
 
     return 0;

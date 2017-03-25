@@ -16,6 +16,7 @@ Wanwan.Server.Check = function() {
                 packet[3],
                 packet[4]
             );
+            Wanwan.Client.index = parseInt(packet[5]);
             break;
           default:;
         }      
@@ -23,6 +24,7 @@ Wanwan.Server.Check = function() {
     }
     Wanwan.Server.Messages = [];
 
+    Wanwan.Client.RequestUpdate();
 };
 
 
