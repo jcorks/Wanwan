@@ -3,8 +3,8 @@ Wanwan.Canvas.Text = [];
 Wanwan.Canvas.Animation = {};
 Wanwan.Canvas.Animation.Enter = [];
 Wanwan.Canvas.Properties = {};
-Wanwan.Canvas.Properties.FontHeight = 13;
-
+Wanwan.Canvas.Properties.FontHeight = 7;
+Wanwan.Canvas.Offscreen = document.createElement('canvas');
 
 
 
@@ -41,15 +41,26 @@ Wanwan.Canvas.AddMessage = function(speaker, content, color, enterAnimationName)
 
 
     if (Wanwan.Canvas.UpdateID) clearInterval(Wanwan.Canvas.UpdateID);
-    Wanwan.Canvas.UpdateID = setInterval(Wanwan.Canvas.Update, 20);
+    Wanwan.Canvas.UpdateID = setInterval(Wanwan.Canvas.UpdateFramebuffer, 20);
 }
+
+
+
+
 
 
 // the main update look just draws all the strings we know
 // in the way they're requested to be drawn
-Wanwan.Canvas.Update = function() {
+Wanwan.Canvas.UpdateFramebuffer = function() {
+
+
     var needsUpdate = false;
-    var context = Wanwan.Canvas.Context;
+    var context = Wanwan.Canvas.Offscreen.getContext('2d'); //Context;
+
+
+    Wanwan.Canvas.Offscreen.height = Wanwan.Canvas.Element.height/2;
+    Wanwan.Canvas.Offscreen.width = Wanwan.Canvas.Element.width/2;
+
 
 
     var font = "" + Wanwan.Canvas.Properties.FontHeight + "pt wanwan_font_main";
@@ -58,13 +69,21 @@ Wanwan.Canvas.Update = function() {
     }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
+    var messageCount = Math.floor(Wanwan.Canvas.Offscreen.height / (Wanwan.Canvas.Properties.FontHeight*1.5));
 
-    context.clearRect(0, 0, Wanwan.Canvas.Element.width, Wanwan.Canvas.Element.height);
-    for(var i = 0; i < Wanwan.Canvas.Text.length; ++i) {
+
+    context.clearRect(0, 0, Wanwan.Canvas.Offscreen.width, Wanwan.Canvas.Offscreen.height);
+    for(var i = 0; i < messageCount && i < Wanwan.Canvas.Text.length; ++i) {
         
         // always draw the speaker normally with the color request
-        var text = Wanwan.Canvas.Text[i];
-        context.translate(0, Wanwan.Canvas.Properties.FontHeight*1.5);
+        if (Wanwan.Canvas.Text.length > messageCount)
+            var text = Wanwan.Canvas.Text[i + Wanwan.Canvas.Text.length - messageCount];
+        else 
+            var text = Wanwan.Canvas.Text[i];
+
+
+
+        context.translate(0, Math.floor(Wanwan.Canvas.Properties.FontHeight*1.5));
 
 
         context.font = font;
@@ -90,6 +109,24 @@ Wanwan.Canvas.Update = function() {
         clearInterval(Wanwan.Canvas.UpdateID);
         Wanwan.Canvas.UpdateID = null;
     }
+
+    Wanwan.Canvas.Update();
+}
+
+
+Wanwan.Canvas.Update = function() {
+    Wanwan.Canvas.Context.clearRect(0, 0, Wanwan.Canvas.Element.width, Wanwan.Canvas.Element.height);
+    Wanwan.Canvas.Context.drawImage(Wanwan.Canvas.Offscreen, 
+        0, 0, Wanwan.Canvas.Offscreen.width, Wanwan.Canvas.Offscreen.height, 
+        0, 0, Wanwan.Canvas.Element.width, Wanwan.Canvas.Element.height);
+}
+
+
+
+
+Wanwan.Canvas.ClearText = function() {
+    Wanwan.Canvas.Text = [];
+    Wanwan.Client.index = 0;
 }
 
 

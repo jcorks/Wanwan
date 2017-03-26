@@ -1,6 +1,7 @@
 Wanwan.Client = {}
 
-Wanwan.Client.name  = "ExampleUser";
+
+
 Wanwan.Client.color = "#CDE";
 Wanwan.Client.index = 0;
 
@@ -38,10 +39,10 @@ Wanwan.Client.Post = function(message) {
     // form basic message
     var out = [];
     out.push("WANWANPOST");
-    out.push("TestUser");
+    out.push(Wanwan.Client.userName);
     out.push(message);
     out.push("Core.Speech");
-    out.push("test");
+    out.push(Wanwan.Client.channelName);
 
 
     var str = Wanwan.Server.Hexify(out);
@@ -54,7 +55,7 @@ Wanwan.Client.Post = function(message) {
 Wanwan.Client.RequestUpdate = function() {
     var out = [];
     out.push("WANWANUPDT");
-    out.push("test");
+    out.push(Wanwan.Client.channelName);
     out.push(Wanwan.Client.index.toString());
  
     var str = Wanwan.Server.Hexify(out);

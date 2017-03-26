@@ -5,11 +5,11 @@
 #include <stdio.h>
 #define WANWAN_STRING_ALLOCTAG 0xDE0AFEF5
 #define WANWAN_STRING_VALID(__S__) ((__S__) && ((__S__)->allocTag==WANWAN_STRING_ALLOCTAG))
-
+#define WANWAN_STRING_PIECE 4096
 struct wanwan_String {
     uint32_t allocTag;
     char * data;
-    uint16_t length;
+    uint32_t length;
 };
 
 
@@ -17,11 +17,14 @@ struct wanwan_String {
 static wanwan_String * wanwan_string_concatenate_format_base(wanwan_String * A, const char * format, va_list args) {
     if (!WANWAN_STRING_VALID(A)) return A;
     static char * strB = NULL;
-    if (!strB)
-        strB = calloc(WANWAN_STRING_MAX_LENGTH+1, 1);
-
+    if (strB) free(strB);
+    va_list copy;
+    va_copy(copy, args);
+    size_t len = vsnprintf("", 0, format, copy);
+    va_end(copy);
+    strB = calloc(1, len+1);
     strB[0] = 0;
-    vsnprintf(strB, WANWAN_STRING_MAX_LENGTH, format, args);
+    vsnprintf(strB, len+1, format, args);
     return wanwan_string_concatenate_cstr(A, strB);
 }
 
@@ -71,7 +74,7 @@ void wanwan_string_set(wanwan_String * str, const char * data) {
 }
 
 
-uint16_t wanwan_string_length(const wanwan_String * str) {
+uint32_t wanwan_string_length(const wanwan_String * str) {
     if (!WANWAN_STRING_VALID(str)) return 0;
     return str->length;
 }

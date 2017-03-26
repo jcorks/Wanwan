@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
    
     
     {
-        wanwan_Channel * c = wanwan_channel_create("test");
+        wanwan_Channel * c = wanwan_channel_create("Lobby");
         if (!wanwan_channel_exists(c)) {
             wanwan_channel_initialize(c, "A testing channel.");
         }

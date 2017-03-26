@@ -5,7 +5,7 @@ Wanwan.Server.Messages = [];
 
 Wanwan.Server.Check = function() {
     for(var i = 0; i < Wanwan.Server.Messages.length; ++i) {
-        console.log("From the server: " + Wanwan.Server.Messages[i]);
+        //console.log("From the server: " + Wanwan.Server.Messages[i]);
         var packet = Wanwan.Server.Dehexify(Wanwan.Server.Messages[i]);
 
         switch(packet[0]) {
@@ -118,7 +118,7 @@ Wanwan.Server.Hexify = function(argvec) {
     for(var i = 0; i < argvec.length; ++i) {
         str += "00";
         for(var n = 0; n < argvec[i].length; ++n) {
-            str += Wanwan.Server.Uint8ToHex(String.charCodeAt(argvec[i][n]));
+            str += Wanwan.Server.Uint8ToHex(argvec[i].charCodeAt(n));
         }
         str += "00";
     }

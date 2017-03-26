@@ -16,7 +16,7 @@ Wanwan.Canvas.Animation.Enter["Core.Wavey"] = function(text, context) {
     var iter = 0;
     for(var i = 0; i < text.content.length; ++i) {
         sub = text.content.substring(i, i+1);
-        context.fillText(sub, iter, text.persist.factor*Math.sin(localCount/10.0) * 5);
+        context.fillText(sub, Math.floor(iter), Math.floor(text.persist.factor*Math.sin(localCount/10.0) * 5));
         iter += Wanwan.Canvas.Properties.FontWidth;
         localCount += 5;
     }
@@ -47,6 +47,9 @@ Wanwan.Canvas.Animation.Enter["Core.Speech"] = function(text, context) {
             sub == '?' ||
             sub == '!') {
             text.persist.wait = -6;
+
+            setInterval(
+
         } else if (sub == ',') {
             text.persist.wait = -3;
         } else {
@@ -54,7 +57,7 @@ Wanwan.Canvas.Animation.Enter["Core.Speech"] = function(text, context) {
         }
         text.persist.index++;
     }
-    return (text.persist.index == text.content.length);
+    return (text.persist.index => text.content.length);
 }
 
 

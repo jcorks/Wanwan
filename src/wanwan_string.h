@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 // maximum byte-length of a string possible
-#define WANWAN_STRING_MAX_LENGTH 4096*2
+#define WANWAN_STRING_MAX_LENGTH 0xFFFFff00
 
 typedef struct wanwan_String wanwan_String;
 
@@ -17,7 +17,7 @@ void wanwan_string_destroy(wanwan_String *);
 
 
 // reutnrs the number of characters within the string
-uint16_t wanwan_string_length(const wanwan_String *);
+uint32_t wanwan_string_length(const wanwan_String *);
 
 
 // updates the string safely.
