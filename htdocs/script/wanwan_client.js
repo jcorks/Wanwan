@@ -36,13 +36,25 @@ Wanwan.Client.SendRequest = function(str) {
 // (the client wont show those changes until acknowledged from the server
 Wanwan.Client.Post = function(message) {
 
+    var anime = "Core.Speech";
+    if (message.length >= 4 &&
+        message[0] == '[' && 
+        message[2] == ']') {
+        switch(message[1]) {
+          case '~': anime = "Core.Wavey"; break;
+          case '!': anime = "Core.Shock"; break;
+        }
+
+        message = message.substring(3, message.length);
+    }
+
     
     // form basic message
     var out = [];
     out.push("WANWANPOST");
     out.push(Wanwan.Client.userName);
     out.push(message);
-    out.push("Core.Speech");
+    out.push(anime);
     out.push(Wanwan.Client.channelName);
 
 

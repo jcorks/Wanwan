@@ -6,9 +6,12 @@ Wanwan.Init = function(canvasElementID, serverCoreURL){}
 
 
 // usually done for you, but maybe be needed for special situations
-// and external events (i.e. canvas resize)
-Wanwan.Update = function(){}
+// and external events. A "soft update" redraws the chat's framebuffer.
+// This is far quicker than a full update 
+Wanwan.SoftUpdate = function(){}
 
+
+Wanwan.FullUpdate = function(){}
 
 // Sets the name that the client will have during chat
 //
@@ -81,10 +84,15 @@ Wanwan.Channel = function(channelName) {
 }
 
 
-Wanwan.Updte = function() {
+Wanwan.SoftUpdate = function() {
+    if (Wanwan.Canvas.Context == null) return;
     Wanwan.Canvas.Update();
 }
 
+Wanwan.FullUpdate = function() {
+    if (Wanwan.Canvas.Context == null) return;
+    Wanwan.Canvas.UpdateFramebuffer();
+}
 
 
 Wanwan.Input = function(event) {
