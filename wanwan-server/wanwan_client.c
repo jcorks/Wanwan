@@ -25,24 +25,25 @@ wanwan_String * generate_color(const wanwan_String * ip, const wanwan_String * n
     uint8_t r = 0, g = 0, b = 0, a = 0;
     
     uint32_t i = 0;
+
     sscanf(wanwan_string_get_cstr(ip), "%hhu.%hhu.%hhu.%hhu", &r, &g, &b, &a);
     r = r%42 + a%10;
     g = g%42 + a%10;
     b = b%42 + a%10;
 
 
-
     for(; i < wanwan_string_length(name); ++i) {
         switch(i%3) {
-          case 0: r+=wanwan_string_get_cstr(name)[i]; break;
-          case 1: g+=wanwan_string_get_cstr(name)[i]; break;
-          case 2: b+=wanwan_string_get_cstr(name)[i]; break;
+          case 0: r^=wanwan_string_get_cstr(name)[i]; break;
+          case 1: g^=wanwan_string_get_cstr(name)[i]; break;
+          case 2: b^=wanwan_string_get_cstr(name)[i]; break;
         }
     }
 
-    if (r < 64) r = 64;
-    if (g < 64) g = 64;
-    if (b < 64) b = 64;
+
+    if (r < 128) r = 128;
+    if (g < 128) g = 128;
+    if (b < 128) b = 128;
 
     return wanwan_string_create_format("rgb(%i, %i, %i)", r, g, b);
 

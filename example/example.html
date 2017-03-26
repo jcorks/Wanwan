@@ -3,13 +3,16 @@
 <head></head><title>Test</title>
 <meta charset="utf-8">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="./style/wanwan.css">
 
-<body onresize="manager.onresize()">
+<body onresize="manager.onresize()"
+      style="background-color: #555 ;color: #CCC;">
     <div>
     <canvas id="canvas" width="400" height="400" style="background-color:rgb(64, 64, 64);"></canvas>
     <script type="text/javascript" src= "wanwan.min.js"></script>
 
+
+    <!-- Define input regions for both the name and 
+         message. The name precedes the message -->
     <div>
         <input type="text" id="nameEntry" 
             style="color: #DDD; background: rgb(100, 100, 100); 
@@ -34,17 +37,31 @@
         </div>
     </div>
 
-    <!-- Just manages the reszing of the canvas. Not necessary, but makes more 
-         sense for a dedicated window of chat -->
+
+
+    <!-- Management setup.t -->
     <script>
+
+        // when the page loads, initialize Wanwan
+        window.onload = function(){
+            Wanwan.Init("canvas", "http://localhost/bin/core.wanwan");
+            Wanwan.Canvas.Font = "monospace";
+            manager.onresize();
+        }
+
+
         var manager = {};
 
+        // Just resizes elements with the screen
         manager.onresize = function() { 
             var canvas = document.getElementById("canvas"); 
             canvas.width  = window.innerWidth;
             canvas.height = (window.innerHeight - 70);
             document.getElementById("command").width = window.innerWidth*0.78;
             document.getElementById("nameEntry").width = window.innerWidth*0.15;
+
+            // snce the canvas size probably cheanged, tell the canvas
+            // to be redrawn
             Wanwan.Canvas.FullUpdate();
         }
 
@@ -61,12 +78,8 @@
             }
         }
 
-        manager.onresize();
 
+        
 
-        window.onload = function(){
-            Wanwan.Init("canvas", "http://localhost/bin/core.wanwan");
-            Wanwan.Canvas.Font = "wanwan_font_main"; // defined in wanwan.css
-        }
     </script>
 </body>

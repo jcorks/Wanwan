@@ -13,7 +13,23 @@
 
 int main(int argc, char **argv) {
    
+
+    char * query = getenv("QUERY_STRING");
+    if (query) query = strdup(query);
+
+
+    char * ip    = getenv("REMOTE_ADDR");
+    if (ip) ip = strdup(ip);
+
+
+
+
+    // The channel path is the base directory where
+    char * path  = getenv("WANWAN_CHANNEL_PATH");
+    if (path) path = strdup(path);
     
+
+
     {
         wanwan_Channel * c = wanwan_channel_create("Lobby");
         if (!wanwan_channel_exists(c)) {
@@ -21,11 +37,12 @@ int main(int argc, char **argv) {
         }
     }
     
-    char * query = getenv("QUERY_STRING");
-    char * ip    = getenv("REMOTE_ADDR");
-    //char * query = "0057414e57414e504f53540000446155736572000048656c6c6f2c20776f726c64210000436f72652e53706565636800007465737400";
-    //char * query = "0057414e57414e5550445400007465737400003000"; // update test;
-    //char * ip    = "127.0.0.1"; ////getenv("REMOTE_ADDR");
+
+    
+
+
+
+
 
 
     wanwan_Client * client = wanwan_client_create(query, ip);
