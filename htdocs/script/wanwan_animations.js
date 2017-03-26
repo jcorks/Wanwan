@@ -20,9 +20,8 @@ Wanwan.Canvas.Animation.Enter["Core.Wavey"] = function(text, context) {
         iter += Wanwan.Canvas.Properties.FontWidth;
         localCount += 5;
     }
-    text.persist.counter += 1.8;
-    text.persist.factor *= 0.97;
-    return text.persist.factor < 1e-6;
+    setTimeout(function(){text.persist.factor *= 0.87; text.persist.counter += 6;}, 15);
+    return text.persist.factor < 0.01;
 }
 
 
@@ -34,30 +33,28 @@ Wanwan.Canvas.Animation.Enter["Core.Speech"] = function(text, context) {
     if (text.persist.index == null) {
         text.persist.index = 0;
         text.persist.wait = 0;
+        text.persist.updateID = null;
+        text.persist.fn = function(){text.persist.index++; text.persist.updateID = null;};
     }
     
     context.fillColor = text.color;
-    context.fillText(text.content.substring(0, text.persist.index), 0, 0);
+    context.fillText(text.content.substring(0, text.persist.index) + "\u25A1", 0, 0);
 
 
-    text.persist.wait +=1;
-    if (text.persist.wait >= 1) {
+    if (text.persist.updateID == null) {
         var sub = text.content.substring(text.persist.index, text.persist.index+1);
         if (sub == '.' ||
             sub == '?' ||
             sub == '!') {
-            text.persist.wait = -6;
 
-            setInterval(
-
+            text.persist.updateID = setTimeout(text.persist.fn, 160);
         } else if (sub == ',') {
-            text.persist.wait = -3;
+            text.persist.updateID = setTimeout(text.persist.fn, 70);
         } else {
-            text.persist.wait = 0;
+            text.persist.updateID = setTimeout(text.persist.fn, 20 + (Math.random() > .9 ? 90 : 0));
         }
-        text.persist.index++;
     }
-    return (text.persist.index => text.content.length);
+    return (text.persist.index >= text.content.length);
 }
 
 

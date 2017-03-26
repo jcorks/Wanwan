@@ -4,6 +4,9 @@ Wanwan.Server.Messages = [];
 
 
 Wanwan.Server.Check = function() {
+    if (!Wanwan.Server.Messages.length) {
+        Wanwan.Client.RequestUpdate();
+    }
     for(var i = 0; i < Wanwan.Server.Messages.length; ++i) {
         //console.log("From the server: " + Wanwan.Server.Messages[i]);
         var packet = Wanwan.Server.Dehexify(Wanwan.Server.Messages[i]);
@@ -14,7 +17,7 @@ Wanwan.Server.Check = function() {
             Wanwan.Canvas.AddMessage(
                 packet[1], packet[2],
                 packet[3],
-                packet[4]
+                Wanwan.Server.Messages.length > 8 ? "Default" : packet[4]
             );
             Wanwan.Client.index = parseInt(packet[5]);
             break;
@@ -24,7 +27,6 @@ Wanwan.Server.Check = function() {
     }
     Wanwan.Server.Messages = [];
 
-    Wanwan.Client.RequestUpdate();
 };
 
 

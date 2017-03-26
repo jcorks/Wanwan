@@ -91,6 +91,7 @@ Wanwan.Input = function(event) {
     if (event.keyCode == 13) {
         
         
+        Wanwan.Name(textContent = document.getElementById("nameEntry").value); 
         textContent = document.getElementById("command").value; 
         document.getElementById("command").value = "";
         /*

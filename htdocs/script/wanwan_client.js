@@ -26,6 +26,7 @@ Wanwan.Client.SendRequest = function(str) {
     //console.log("(" + Wanwan.Server.Dehexify(str) + ")");
 
     Wanwan.Client.ScriptController.setAttribute("src", Wanwan.Server.URL+"?"+str);
+    Wanwan.Client.ScriptController.setAttribute("async", "async");
     var body = document.body;
     body.appendChild(Wanwan.Client.ScriptController);
 }

@@ -7,7 +7,7 @@
 
 <body onresize="manager.onresize()">
     <div>
-    <canvas id="canvas" width="400" height="400" style="background-color:rgb(32, 32, 32);"></canvas>
+    <canvas id="canvas" width="400" height="400" style="background-color:rgb(64, 64, 64);"></canvas>
     <script type="text/javascript" src= "./script/wanwan.js"></script>
     <script type="text/javascript" src= "./script/wanwan_canvas.js"></script>
     <script type="text/javascript" src= "./script/wanwan_client.js"></script>
@@ -21,7 +21,7 @@
         manager.onresize = function() { 
             var canvas = document.getElementById("canvas"); 
             canvas.width  = window.innerWidth;
-            canvas.height = (window.innerHeight - 100);
+            canvas.height = (window.innerHeight - 70);
             
         }
         manager.onresize();
@@ -31,14 +31,27 @@
             Wanwan.Init("canvas", "http://192.168.2.113/bin/core.wanwan");
         }
     </script>
+    <input type="text" id="nameEntry" 
+           autofocus 
+        style="color: #DDD; background: rgb(100, 100, 100); 
+               border: none; width: 15%; outline: none;
+               font-family: monospace;
+               font-size: 15px;
+               float: left;
+               height:40px;
+               "
+        value="Potato"></input>
+
     <input type="text" id="command" 
            autofocus 
            onblur="this.focus()"
-        style="color: #DDD; background: rgba(0, 0, 0, 0); 
+        style="color: #DDD; background: rgba(0, 0, 0, 1.0); 
                border: none; width: 60%; outline: none;
                font-family: monospace;
                font-size: 15px;
                float: left;
+               height:40px;
+
                "
         onkeydown = "Wanwan.Input(event);"></input>
     </div>

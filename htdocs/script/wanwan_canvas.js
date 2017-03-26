@@ -3,7 +3,7 @@ Wanwan.Canvas.Text = [];
 Wanwan.Canvas.Animation = {};
 Wanwan.Canvas.Animation.Enter = [];
 Wanwan.Canvas.Properties = {};
-Wanwan.Canvas.Properties.FontHeight = 7;
+Wanwan.Canvas.Properties.FontHeight = 13;
 Wanwan.Canvas.Offscreen = document.createElement('canvas');
 
 
@@ -39,9 +39,7 @@ Wanwan.Canvas.AddMessage = function(speaker, content, color, enterAnimationName)
         text.onEnter = Wanwan.Canvas.Animation.Enter["default"];
     Wanwan.Canvas.Text.push(text);
 
-
-    if (Wanwan.Canvas.UpdateID) clearInterval(Wanwan.Canvas.UpdateID);
-    Wanwan.Canvas.UpdateID = setInterval(Wanwan.Canvas.UpdateFramebuffer, 20);
+    requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
 }
 
 
@@ -58,8 +56,8 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
     var context = Wanwan.Canvas.Offscreen.getContext('2d'); //Context;
 
 
-    Wanwan.Canvas.Offscreen.height = Wanwan.Canvas.Element.height/2;
-    Wanwan.Canvas.Offscreen.width = Wanwan.Canvas.Element.width/2;
+    Wanwan.Canvas.Offscreen.height = Wanwan.Canvas.Element.height;
+    Wanwan.Canvas.Offscreen.width = Wanwan.Canvas.Element.width;
 
 
 
@@ -105,9 +103,11 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
         
         context.translate(-Wanwan.Canvas.Properties.FontWidth*12, 0);
     }
-    if (!needsUpdate) {
-        clearInterval(Wanwan.Canvas.UpdateID);
-        Wanwan.Canvas.UpdateID = null;
+    if (needsUpdate && Wanwan.Canvas.UpdateID == null) {
+        Wanwan.Canvas.UpdateID = setTimeout(function(){
+            requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
+            Wanwan.Canvas.UpdateID = null;
+        }, 15);
     }
 
     Wanwan.Canvas.Update();
