@@ -21,7 +21,32 @@ struct wanwan_Client {
     wanwan_ClientRequest request;
 };
 
+wanwan_String * generate_color(const wanwan_String * ip, const wanwan_String * name) {
+    uint8_t r = 0, g = 0, b = 0, a = 0;
+    
+    uint32_t i = 0;
+    sscanf(wanwan_string_get_cstr(ip), "%hhu.%hhu.%hhu.%hhu", &r, &g, &b, &a);
+    r = r%42 + a%10;
+    g = g%42 + a%10;
+    b = b%42 + a%10;
 
+
+
+    for(; i < wanwan_string_length(name); ++i) {
+        switch(i%3) {
+          case 0: r+=wanwan_string_get_cstr(name)[i]; break;
+          case 1: g+=wanwan_string_get_cstr(name)[i]; break;
+          case 2: b+=wanwan_string_get_cstr(name)[i]; break;
+        }
+    }
+
+    if (r < 64) r = 64;
+    if (g < 64) g = 64;
+    if (b < 64) b = 64;
+
+    return wanwan_string_create_format("rgb(%i, %i, %i)", r, g, b);
+
+}
 
 wanwan_Client * wanwan_client_create(
     const char * query,
@@ -65,6 +90,7 @@ wanwan_Client * wanwan_client_create(
         c->message   = wanwan_string_copy(input[2]);
         c->animation = wanwan_string_copy(input[3]);
         c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[4]));
+        c->colorString = generate_color(c->ip, c->name);
     } 
 
 

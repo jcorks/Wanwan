@@ -72,8 +72,12 @@ int main(int argc, char **argv) {
        }
         
       default:
-        // try to fake the CGI not existing
-        printf("Status: 404 Not Found\n");
+        // try to fake the CGI not existing really lazily
+        // ideally, you would generate the page that the webserver page generates
+        printf("Status: 404 Not Found\r\n");
+        printf("Content-Type: text/html\r\n\r\n");
+
+        printf("<h1>404 File not found!</h1>");
         return 0;            
     }
 
