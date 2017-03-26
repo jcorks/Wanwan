@@ -16,7 +16,6 @@
 
     <div>
         <input type="text" id="nameEntry" 
-               autofocus 
             style="color: #DDD; background: rgb(100, 100, 100); 
                    border: none; width: 15%; outline: none;
                    font-family: monospace;
@@ -27,8 +26,6 @@
             value="Potato"></input>
 
         <input type="text" id="command" 
-               autofocus 
-               onblur="this.focus()"
             style="color: #DDD; background: rgba(0, 0, 0, 1.0); 
                    border: none; width: 78%; outline: none;
                    font-family: monospace;
@@ -58,7 +55,7 @@
 
 
         window.onload = function(){
-            Wanwan.Init("canvas", "http://192.168.10.248/bin/core.wanwan");
+            Wanwan.Init("canvas", "http://localhost/bin/core.wanwan");
         }
     </script>
 </body>
