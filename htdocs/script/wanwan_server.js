@@ -1,12 +1,19 @@
 Wanwan.Server = {};
 Wanwan.Server.URL = "";
 Wanwan.Server.Messages = [];
+Wanwan.Server.NeedsUpdateID = null;
 
 
 Wanwan.Server.Check = function() {
-    if (!Wanwan.Server.Messages.length) {
+    if (Wanwan.Server.NeedsUpdateID == null) {
         Wanwan.Client.RequestUpdate();
+        Wanwan.Server.NeedsUpdateID = setTimeout(function(){
+            Wanwan.Server.NeedsUpdateID = null;
+        }, 7000);
     }
+
+
+    if (!Wanwan.Server.Messages.length) return;
     for(var i = 0; i < Wanwan.Server.Messages.length; ++i) {
         //console.log("From the server: " + Wanwan.Server.Messages[i]);
         var packet = Wanwan.Server.Dehexify(Wanwan.Server.Messages[i]);
@@ -14,19 +21,23 @@ Wanwan.Server.Check = function() {
         switch(packet[0]) {
           case "WANWANMSG":
             if (packet.length != 6) continue;
+            if (Wanwan.Client.index >= parseInt(packet[5])) continue;
             Wanwan.Canvas.AddMessage(
                 packet[1], packet[2],
                 packet[3],
                 Wanwan.Server.Messages.length > 8 ? "Default" : packet[4]
             );
             Wanwan.Client.index = parseInt(packet[5]);
+
             break;
           default:;
         }      
 
     }
-    Wanwan.Server.Messages = [];
 
+    Wanwan.Server.Messages = [];
+    clearTimeout(Wanwan.Server.NeedsUpdateID);
+    Wanwan.Server.NeedsUpdateID = null;
 };
 
 

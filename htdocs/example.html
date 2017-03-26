@@ -14,6 +14,33 @@
     <script type="text/javascript" src= "./script/wanwan_server.js"></script>
     <script type="text/javascript" src= "./script/wanwan_animations.js"></script>
 
+    <div>
+        <input type="text" id="nameEntry" 
+               autofocus 
+            style="color: #DDD; background: rgb(100, 100, 100); 
+                   border: none; width: 15%; outline: none;
+                   font-family: monospace;
+                   font-size: 15px;
+                   float: left;
+                   height:40px;
+                   "
+            value="Potato"></input>
+
+        <input type="text" id="command" 
+               autofocus 
+               onblur="this.focus()"
+            style="color: #DDD; background: rgba(0, 0, 0, 1.0); 
+                   border: none; width: 78%; outline: none;
+                   font-family: monospace;
+                   font-size: 15px;
+                   float: left;
+                   height:40px;
+
+                   "
+            onkeydown = "Wanwan.Input(event);"></input>
+        </div>
+    </div>
+
     <!-- Just manages the reszing of the canvas. Not necessary, but makes more 
          sense for a dedicated window of chat -->
     <script>
@@ -22,6 +49,8 @@
             var canvas = document.getElementById("canvas"); 
             canvas.width  = window.innerWidth;
             canvas.height = (window.innerHeight - 70);
+            document.getElementById("command").width = window.innerWidth*0.78;
+            document.getElementById("nameEntry").width = window.innerWidth*0.15;
             Wanwan.FullUpdate();
             
         }
@@ -29,31 +58,7 @@
 
 
         window.onload = function(){
-            Wanwan.Init("canvas", "http://192.168.2.113/bin/core.wanwan");
+            Wanwan.Init("canvas", "http://192.168.10.248/bin/core.wanwan");
         }
     </script>
-    <input type="text" id="nameEntry" 
-           autofocus 
-        style="color: #DDD; background: rgb(100, 100, 100); 
-               border: none; width: 15%; outline: none;
-               font-family: monospace;
-               font-size: 15px;
-               float: left;
-               height:40px;
-               "
-        value="Potato"></input>
-
-    <input type="text" id="command" 
-           autofocus 
-           onblur="this.focus()"
-        style="color: #DDD; background: rgba(0, 0, 0, 1.0); 
-               border: none; width: 82%; outline: none;
-               font-family: monospace;
-               font-size: 15px;
-               float: left;
-               height:40px;
-
-               "
-        onkeydown = "Wanwan.Input(event);"></input>
-    </div>
 </body>

@@ -2,33 +2,35 @@ Wanwan.Client = {}
 
 
 
-Wanwan.Client.color = "#CDE";
 Wanwan.Client.index = 0;
+Wanwan.Client.ScriptController = {};
 
 // physically send the request to the server
-Wanwan.Client.SendRequest = function(str) {
+Wanwan.Client.SendRequest = function(str, type) {
     // basic rundown:
     // Request JS to run from the WANWAN server
     // eventually this will populate a single string buffer of hex 
     // to be encoded / decoded in a correct format.
 
+    var controller = Wanwan.Client.ScriptController[type];
 
-    if (Wanwan.Client.ScriptController != null) {
-        document.body.removeChild(Wanwan.Client.ScriptController);
+    if (controller != null) {
+        document.body.removeChild(controller);
     }
 
-    Wanwan.Client.ScriptController    = document.createElement("script");
-    Wanwan.Client.ScriptController.id = "WANWAN_post_widget";
-    Wanwan.Client.ScriptController.setAttribute("type", "text/javascript");
+    controller    = document.createElement("script");
+    controller.id = "WANWAN_js_request";
+    controller.setAttribute("type", "text/javascript");
 
 
     //console.log("I want to send ->" + str);
     //console.log("(" + Wanwan.Server.Dehexify(str) + ")");
 
-    Wanwan.Client.ScriptController.setAttribute("src", Wanwan.Server.URL+"?"+str);
-    Wanwan.Client.ScriptController.setAttribute("async", "async");
+    controller.setAttribute("src", Wanwan.Server.URL+"?"+str);
+    controller.setAttribute("async", "async");
     var body = document.body;
-    body.appendChild(Wanwan.Client.ScriptController);
+    body.appendChild(controller);
+    Wanwan.Client.ScriptController[type] = controller
 }
 
 
@@ -59,7 +61,11 @@ Wanwan.Client.Post = function(message) {
 
 
     var str = Wanwan.Server.Hexify(out);
-    Wanwan.Client.SendRequest(str);
+    Wanwan.Client.SendRequest(str, 'Post');
+
+
+    clearTimeout(Wanwan.Server.NeedsUpdateID);
+    Wanwan.Server.NeedsUpdateID = null;
     
 }
 
@@ -72,7 +78,8 @@ Wanwan.Client.RequestUpdate = function() {
     out.push(Wanwan.Client.index.toString());
  
     var str = Wanwan.Server.Hexify(out);
-    Wanwan.Client.SendRequest(str);   
+    Wanwan.Client.SendRequest(str, 'Update');   
+
 }
 
 

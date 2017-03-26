@@ -3,6 +3,7 @@
 #include "wanwan_server.h"
 #include "wanwan_response.h"
 #include "wanwan_channel.h"
+#include "wanwan_sleep.h"
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,14 +52,22 @@ int main(int argc, char **argv) {
 
     // give the client all the messages they don't have yet
       case wanwan_Request_Update: {
+        time_t curTime = time(NULL);
+
         wanwan_String ** messages = NULL;
         uint64_t messageCount   = 0;
-        wanwan_channel_get_messages_since(
-            wanwan_client_get_channel(client), 
-            wanwan_client_get_index(client), 
-            &messages, 
-            &messageCount
-        );
+
+        while(!messageCount && (time(NULL) - curTime < 8)) {
+            wanwan_channel_get_messages_since(
+                wanwan_client_get_channel(client), 
+                wanwan_client_get_index(client), 
+                &messages, 
+                &messageCount
+            );
+            if (!messageCount) {
+                wanwan_sleep();
+            }
+        }
 
 
         uint64_t i = 0;
