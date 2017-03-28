@@ -4,29 +4,29 @@
 #include "wanwan_response.h"
 #include "wanwan_channel.h"
 #include "wanwan_sleep.h"
+
+#include <inttypes.h>
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 
-
+char * wanwan_get_post_message();
 
 int main(int argc, char **argv) {
    
 
-    char * query = getenv("QUERY_STRING");
-    if (query) query = strdup(query);
+    // gather environment variables
+    char * query    = wanwan_get_post_message();
+    char * ip       = getenv("REMOTE_ADDR")         ? strdup(getenv("REMOTE_ADDR"))         : NULL;
+
+    // The following env variables are specific to WANWAN
+
+    // WANWAN_CHANNEL_PATH denotes the path that wanwan should use to manage 
+    // channels. Note that wanwan won't create any directories, only regular files.
+    char * mainPath = getenv("WANWAN_CHANNEL_PATH") ? strdup(getenv("WANWAN_CHANNEL_PATH")) : NULL;
 
 
-    char * ip    = getenv("REMOTE_ADDR");
-    if (ip) ip = strdup(ip);
-
-
-
-
-    // The channel path is the base directory where
-    char * path  = getenv("WANWAN_CHANNEL_PATH");
-    if (path) path = strdup(path);
     
 
 
@@ -113,3 +113,32 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+
+
+
+
+
+char * wanwan_get_post_message() {
+    uint64_t messageLen = 0;
+    char * message;
+
+    if (!fscanf(stdin, "%"PRIu64"&", &messageLen)) goto L_FAIL;
+    if (messageLen == UINT64_MAX) goto L_FAIL; // nice try
+    if (!(message = calloc(1, messageLen+1))) goto L_FAIL;
+
+
+    message[messageLen] = 0;
+    fread(message, messageLen, 1, stdin);
+    return message;
+
+  L_FAIL:
+    // try to fake the CGI not existing really lazily
+    // ideally, you would generate the page that the webserver page generates
+    printf("Status: 404 Not Found\r\n");
+    printf("Content-Type: text/html\r\n\r\n");
+
+    printf("<h1>404 File not found!</h1>");
+    exit(0);    
+    return NULL;
+
+}

@@ -44,8 +44,9 @@
 
         // when the page loads, initialize Wanwan
         window.onload = function(){
-            Wanwan.Init("canvas", "http://localhost/bin/core.wanwan");
+            Wanwan.Init("canvas", "../bin/core.wanwan");
             Wanwan.Canvas.Font = "monospace";
+            Wanwan.Canvas.FontSize = "12pt";
             manager.onresize();
         }
 
@@ -77,6 +78,13 @@
                 Wanwan.Post(textContent);
             }
         }
+
+        // add whell control if available
+        document.getElementById("canvas").addEventListener("wheel", function(event) {
+            Wanwan.Canvas.VerticalScroll += event.deltaY;
+            Wanwan.Canvas.FullUpdate();
+            return false;
+        }, false);
 
 
         

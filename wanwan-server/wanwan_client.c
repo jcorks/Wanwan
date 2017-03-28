@@ -22,28 +22,32 @@ struct wanwan_Client {
 };
 
 wanwan_String * generate_color(const wanwan_String * ip, const wanwan_String * name) {
+
     uint8_t r = 0, g = 0, b = 0, a = 0;
     
     uint32_t i = 0;
 
+    int seed = 0;
     sscanf(wanwan_string_get_cstr(ip), "%hhu.%hhu.%hhu.%hhu", &r, &g, &b, &a);
-    r = r%42 + a%10;
-    g = g%42 + a%10;
-    b = b%42 + a%10;
+    seed += r+a;
+    seed += g*255+a;
+    seed += b*0xFFFF+a;
 
 
     for(; i < wanwan_string_length(name); ++i) {
         switch(i%3) {
-          case 0: r^=wanwan_string_get_cstr(name)[i]; break;
-          case 1: g^=wanwan_string_get_cstr(name)[i]; break;
-          case 2: b^=wanwan_string_get_cstr(name)[i]; break;
+          case 0: seed+=(g+b)+wanwan_string_get_cstr(name)[i]; break;
+          case 1: seed+=(r+b)+wanwan_string_get_cstr(name)[i]; break;
+          case 2: seed+=(r+g)+wanwan_string_get_cstr(name)[i]; break;
         }
     }
 
+    srand(seed);
+    r = (rand() / (float)RAND_MAX)*128 + 128;
+    g = (rand() / (float)RAND_MAX)*128 + 128;
+    b = (rand() / (float)RAND_MAX)*128 + 128;
 
-    if (r < 128) r = 128;
-    if (g < 128) g = 128;
-    if (b < 128) b = 128;
+    
 
     return wanwan_string_create_format("rgb(%i, %i, %i)", r, g, b);
 
@@ -66,7 +70,7 @@ wanwan_Client * wanwan_client_create(
     if (!wanwan_string_length(c->ip))
         wanwan_string_set(c->ip, "255.255.255.255");
         
-
+    
 
     wanwan_String ** input = NULL;
     uint32_t length = 0;

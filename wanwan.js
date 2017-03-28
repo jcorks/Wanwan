@@ -21,7 +21,7 @@ Wanwan.Init = function(canvasElementID, serverCoreURL){}
 Wanwan.Name = function(name){}
 
 
-// Sets the name of the current user.
+// Sets the name of the current channel.
 //
 Wanwan.Channel = function(name){}
 
@@ -41,27 +41,40 @@ Wanwan.Post = function(messageText){}
 
 
 
+// an option function to set that will run when a new message is about
+// to be registered. 
+Wanwan.onpost = function(user, messsage, color, animationName){return true;}
 
 
-// Canvas-related functions
+
+
+
+// Canvas-related functions and properties
+
+
+// Sets the font to use for the canvas text rendering
+Wanwan.Canvas.Font = "monospace";
+
+// Sets the font size to use for all text on the canvas
+Wanwan.Canvas.FontSize = "13pt";
+
+// Sets the scroll amoutn of the canvas
+Wanwan.Canvas.VerticalScroll = 0;
+
+// Sets the reserved space on the canvas for drawing usernames
+Wanwan.Canvas.ReservedSpaceForNames = 140;
+
+
+
+// Forces a full redraw of the canvas. This is usually only needed for resize events
+// of the canvas.
+Wanwan.Canvas.FullUpdate = function(){}
 
 // usually done for you, but maybe be needed for special situations
 // and external events. A "soft update" redraws the canvas' framebuffer.
 // This is far quicker than a full update 
 Wanwan.Canvas.SoftUpdate = function(){}
 
-
-// Sets the font to use for the canvas text rendering
-Wanwan.Canvas.Font = "monospace";
-
-
-// Sets the font size to use for all text on the canvas
-Wanwan.Canvas.FontSize = "13pt";
-
-
-// Forces a full redraw of the canvas. This is usually only needed for resize events
-// of the canvas.
-Wanwan.Canvas.FullUpdate = function(){}
 
 
 
@@ -106,9 +119,8 @@ Wanwan.Init = function(canvasID, serverCGIURL) {
     Wanwan.Name("Potato");
     Wanwan.Channel("Lobby");
 
-    setInterval(Wanwan.Server.Check, 300);
-
-
+    setInterval(Wanwan.Client.RequestUpdate, 8500);
+    Wanwan.Client.RequestUpdate();
 
 }
 
@@ -171,6 +183,9 @@ Wanwan.Canvas.Animation.Enter["default"] = function(text, context) {
 
 // adds additional text to the main canvas area
 Wanwan.Canvas.AddMessage = function(speaker, content, color, enterAnimationName) {
+    if (Wanwan.Canvas.VerticalScroll >= Wanwan.Canvas.Text.length - Wanwan.Canvas.ViewMessageCount)
+        Wanwan.Canvas.VerticalScroll++;
+
     var text = {};
     text.speaker        = speaker;
     text.content        = content;
@@ -183,7 +198,7 @@ Wanwan.Canvas.AddMessage = function(speaker, content, color, enterAnimationName)
         text.onEnter = Wanwan.Canvas.Animation.Enter["default"];
     Wanwan.Canvas.Text.push(text);
 
-    requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
+
 }
 
 
@@ -211,15 +226,22 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
     }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
-    var messageCount = Math.floor(Wanwan.Canvas.Offscreen.height / (parseInt(Wanwan.Canvas.FontSize)*1.5));
+    Wanwan.Canvas.ViewMessageCount = Math.floor(Wanwan.Canvas.Offscreen.height / (parseInt(Wanwan.Canvas.FontSize)*1.5));
 
+
+    // clip scroll amount
+    if (Wanwan.Canvas.VerticalScroll > Wanwan.Canvas.Text.length - Wanwan.Canvas.ViewMessageCount) {
+        Wanwan.Canvas.VerticalScroll = Wanwan.Canvas.Text.length - Wanwan.Canvas.ViewMessageCount;
+    }
+    if (Wanwan.Canvas.VerticalScroll < 0)
+        Wanwan.Canvas.VerticalScroll = 0;
 
     context.clearRect(0, 0, Wanwan.Canvas.Offscreen.width, Wanwan.Canvas.Offscreen.height);
-    for(var i = 0; i < messageCount && i < Wanwan.Canvas.Text.length; ++i) {
+    for(var i = 0; i < Wanwan.Canvas.ViewMessageCount && i < Wanwan.Canvas.Text.length; ++i) {
         
         // always draw the speaker normally with the color request
-        if (Wanwan.Canvas.Text.length > messageCount)
-            var text = Wanwan.Canvas.Text[i + Wanwan.Canvas.Text.length - messageCount];
+        if (Wanwan.Canvas.Text.length > Wanwan.Canvas.ViewMessageCount)
+            var text = Wanwan.Canvas.Text[i + Wanwan.Canvas.VerticalScroll];
         else 
             var text = Wanwan.Canvas.Text[i];
 
@@ -231,11 +253,17 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
         context.font = font;
         context.textAlign = "left";
         context.fillStyle = text.color;
+
+        // clip the name area
+        context.save();
+        context.rect(0, 0, Wanwan.Canvas.ReservedSpaceForNames, 200);
+        context.clip();
         context.fillText(text.speaker + ": ", 0, 0);
-        context.translate(Wanwan.Canvas.Properties.FontWidth*12, 0);
+        context.restore();
+        context.translate(Wanwan.Canvas.ReservedSpaceForNames+6, 0);
 
 
-        // TODO: doesn't seem to terminate properly yet!
+        // draw message content
         if (!text.enterFinished) {
             text.enterFinished = text.onEnter(text, context)
             needsUpdate = true;
@@ -245,7 +273,7 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
         }
 
         
-        context.translate(-Wanwan.Canvas.Properties.FontWidth*12, 0);
+        context.translate(-Wanwan.Canvas.ReservedSpaceForNames-6, 0);
     }
     if (needsUpdate && Wanwan.Canvas.UpdateID == null) {
         Wanwan.Canvas.UpdateID = setTimeout(function(){
@@ -284,7 +312,7 @@ Wanwan.Client = {}
 
 
 Wanwan.Client.index = 0;
-Wanwan.Client.ScriptController = {};
+Wanwan.Client.UpdateRequest = null;
 
 // physically send the request to the server
 Wanwan.Client.SendRequest = function(str, type) {
@@ -293,6 +321,50 @@ Wanwan.Client.SendRequest = function(str, type) {
     // eventually this will populate a single string buffer of hex 
     // to be encoded / decoded in a correct format.
 
+
+    // posts cancel Updates
+    if (Wanwan.Client.UpdateRequest) {
+        Wanwan.Client.UpdateRequest.abort();
+    }
+
+    
+
+
+    var req = new XMLHttpRequest();
+    req.open('POST', Wanwan.Server.URL+"?", true);
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+            if (req.status == 200) {
+                
+                var respArray = req.responseText.split("\n");
+                for(var i = 0; i < respArray.length; ++i) {
+                    Wanwan.Server.Messages.push(respArray[i]);
+                }
+                Wanwan.Server.Check();
+                console.log("Got response for request.");
+                Wanwan.Client.RequestUpdate();
+    
+                // put in messages and resolve messages
+            }
+
+            if (req == Wanwan.Client.UpdateRequest)
+                Wanwan.Client.UpdateRequest = null;
+
+            
+        }
+    }
+    req.send(str.length.toString() + "&" + str);
+    console.log("Sent request: " + type);
+
+    if (type == 'Update') {
+        Wanwan.Client.UpdateRequest = req;
+    } else if (type == 'Post') {
+        Wanwan.Client.RequestUpdate();
+    }
+
+
+
+    /*
     var controller = Wanwan.Client.ScriptController[type];
 
     if (controller != null) {
@@ -312,7 +384,10 @@ Wanwan.Client.SendRequest = function(str, type) {
     var body = document.body;
     body.appendChild(controller);
     Wanwan.Client.ScriptController[type] = controller
+    */
 }
+
+
 
 
 // posts a new message to the server
@@ -372,20 +447,19 @@ Wanwan.Client.RequestUpdate = function() {
 Wanwan.Server = {};
 Wanwan.Server.URL = "";
 Wanwan.Server.Messages = [];
-Wanwan.Server.NeedsUpdateID = null;
+
+
+
+
+
 
 
 Wanwan.Server.Check = function() {
-    if (Wanwan.Server.NeedsUpdateID == null) {
-        Wanwan.Client.RequestUpdate();
-        Wanwan.Server.NeedsUpdateID = setTimeout(function(){
-            Wanwan.Server.NeedsUpdateID = null;
-        }, 7000);
-    }
 
 
     if (!Wanwan.Server.Messages.length) return;
     for(var i = 0; i < Wanwan.Server.Messages.length; ++i) {
+        if (Wanwan.Server.Messages[i].length == 0) continue;
         //console.log("From the server: " + Wanwan.Server.Messages[i]);
         var packet = Wanwan.Server.Dehexify(Wanwan.Server.Messages[i]);
 
@@ -405,10 +479,8 @@ Wanwan.Server.Check = function() {
         }      
 
     }
-
+    requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
     Wanwan.Server.Messages = [];
-    clearTimeout(Wanwan.Server.NeedsUpdateID);
-    Wanwan.Server.NeedsUpdateID = null;
 };
 
 
