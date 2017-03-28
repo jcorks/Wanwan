@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
+<meta name="viewport" content="width=device-width, initial-scale=.5">
+
 <body onresize="manager.onresize()"
       style="background-color: #555 ;color: #CCC;">
     <div>
-    <canvas id="canvas" width="400" height="400" style="background-color:rgb(64, 64, 64);"></canvas>
+    <canvas id="canvas" width="400" height="400" style="background-color:rgb(64, 64, 64);" onresize="manager.onresize()"></canvas>
     <script type="text/javascript" src= "wanwan.min.js"></script>
 
 
@@ -52,12 +54,16 @@
 
 
         var manager = {};
+            manager.once = false;
 
         // Just resizes elements with the screen
         manager.onresize = function() { 
             var canvas = document.getElementById("canvas"); 
-            canvas.width  = window.innerWidth;
-            canvas.height = (window.innerHeight - 70);
+            if (!manager.once) {
+                canvas.width  = window.innerWidth;
+                canvas.height = (window.innerHeight - 70);
+                manager.once = true;
+            }
             document.getElementById("command").width = window.innerWidth*0.78;
             document.getElementById("nameEntry").width = window.innerWidth*0.15;
 
@@ -81,7 +87,8 @@
 
         // add whell control if available
         document.getElementById("canvas").addEventListener("wheel", function(event) {
-            Wanwan.Canvas.VerticalScroll += event.deltaY;
+            if (event.deltaY > 0) Wanwan.Canvas.VerticalScroll++;
+            if (event.deltaY < 0) Wanwan.Canvas.VerticalScroll--;
             Wanwan.Canvas.FullUpdate();
             return false;
         }, false);

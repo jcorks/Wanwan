@@ -653,7 +653,7 @@ Wanwan.Canvas.Animation.Enter["Core.Speech"] = function(text, context) {
         } else if (sub == ',') {
             text.persist.updateID = setTimeout(text.persist.fn, 70);
         } else {
-            text.persist.updateID = setTimeout(text.persist.fn, 20 + (Math.random() > .9 ? 90 : 0));
+            text.persist.updateID = setTimeout(text.persist.fn, 10 + (Math.random() > .9 ? 80 : 0));
         }
     }
     return (text.persist.index >= text.content.length);
