@@ -2,6 +2,8 @@ var Wanwan = {};
 Wanwan.Canvas = {};
 
 
+
+
 //////////////////////////////////////
 ///////// Public interface ///////////
 
@@ -146,7 +148,7 @@ Wanwan.Start = function(serverCGIURL) {
     setInterval(Wanwan.Client.RequestUpdate, 8500);
     Wanwan.Client.RequestUpdate();
 
-    Wanwan.Bindings.Resolve["initialize"]();
+    Wanwan.Bindings.Resolve("initialize");
 }
 
 
@@ -154,18 +156,21 @@ Wanwan.Name  = function(realName) {
     Wanwan.Client.userName = realName;
 }
 Wanwan.Channel = function(channelName) {
-    Wanwan.Bindings.Resolve["channel-change"](channelName);
+    Wanwan.Bindings.Resolve("channel-change", [channelName]);
 }
 
 Wanwan.Post = function(message) {
-    Wanwan.Bindings.Resolve["client-message"](message);
+    Wanwan.Bindings.Resolve("client-message", [message]);
 }
 
 
 Wanwan.Bind = function(signalName, handler) {
     var bindID = {};
     var bindList = Wanwan.Bindings[signalName];
-    if (bindList == null) return bindID;
+    if (bindList == null) {
+        Wanwan.Bindings[signalName] = [];
+        var bindList = Wanwan.Bindings[signalName];
+    }
 
     bindID.signal = signalName;
     bindID.id     = handler;
@@ -193,69 +198,17 @@ Wanwan.Unbind = function(bindID) {
 
 
 // bindings control signals
-// TODO: really really need a stand function for this...
 Wanwan.Bindings = {};
-Wanwan.Bindings.Resolve = {};
 
-
-Wanwan.Bindings["channel-change"] = [];
-Wanwan.Bindings.Resolve["channel-change"] = function(name) {
-    var bindings = Wanwan.Bindings["channel-change"];
+Wanwan.Bindings.Resolve = function(signal, args) {
+    var bindings = Wanwan.Bindings[signal];
     if (bindings == null) return; // throw error ideally
     if (!bindings.length) return;
 
     for(var i = bindings.length-1; i >= 0; --i) {
-        if (!bindings[i](name)) return;
+        if (!bindings[i].apply(this, args)) return;
     }
 }
-
-Wanwan.Bindings["server-response"] = [];
-Wanwan.Bindings.Resolve["server-response"] = function(name) {
-    var bindings = Wanwan.Bindings["server-response"];
-    if (bindings == null) return; // throw error ideally
-    if (!bindings.length) return;
-
-    for(var i = bindings.length-1; i >= 0; --i) {
-        if (!bindings[i](name)) return;
-    }
-}
-
-
-Wanwan.Bindings["server-message"] = [];
-Wanwan.Bindings.Resolve["server-message"] = function(name, message, color, anime) {
-    var bindings = Wanwan.Bindings["server-message"];
-    if (bindings == null) return; // throw error ideally
-    if (!bindings.length) return;
-
-    for(var i = bindings.length-1; i >= 0; --i) {
-        if (!bindings[i](name, message, color, anime)) return;
-    }
-}
-
-Wanwan.Bindings["client-message"] = [];
-Wanwan.Bindings.Resolve["client-message"] = function(message) {
-    var bindings = Wanwan.Bindings["client-message"];
-    if (bindings == null) return; // throw error ideally
-    if (!bindings.length) return;
-
-    for(var i = bindings.length-1; i >= 0; --i) {
-        if (!bindings[i](message)) return;
-    }
-}
-
-Wanwan.Bindings["initialize"] = [];
-Wanwan.Bindings.Resolve["initialize"] = function() {
-    var bindings = Wanwan.Bindings["initialize"];
-    if (bindings == null) return; // throw error ideally
-    if (!bindings.length) return;
-
-    for(var i = bindings.length-1; i >= 0; --i) {
-        if (!bindings[i]()) return;
-    }
-}
-
-
-
 
 
 
@@ -343,7 +296,7 @@ Wanwan.Client.Post = function(message) {
     var out = [];
     out.push("WANWANPOST");
     out.push(Wanwan.Client.userName);
-    out.push(message);
+    out.push(encodeURIComponent(message));
     out.push(anime);
     out.push(Wanwan.Client.channelName);
 
@@ -398,13 +351,17 @@ Wanwan.Server.Check = function() {
         var packet = Wanwan.Server.Dehexify(Wanwan.Server.Messages[i]);
 
         switch(packet[0]) {
+
           case "WANWANMSG":
             if (packet.length != 6) continue;
             if (Wanwan.Client.index >= parseInt(packet[5])) continue;
-            Wanwan.Bindings.Resolve["server-message"](
-                packet[1], packet[2],
-                packet[3],
-                Wanwan.Server.Messages.length > 8 ? "Default" : packet[4]
+            Wanwan.Bindings.Resolve("server-message", 
+                [
+                    packet[1],  // user
+                    decodeURIComponent(packet[2]),  // message
+                    packet[3],  // color
+                    Wanwan.Server.Messages.length > 8 ? "Default" : packet[4]
+                ]
             );
             Wanwan.Client.index = parseInt(packet[5]);
 
@@ -413,7 +370,7 @@ Wanwan.Server.Check = function() {
         }      
 
     }
-    Wanwan.Bindings.Resolve["server-response"]();
+    Wanwan.Bindings.Resolve("server-response");
     Wanwan.Server.Messages = [];
 };
 

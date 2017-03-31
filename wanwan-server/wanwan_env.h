@@ -33,6 +33,11 @@ const char * wanwan_env_get_query();
 const char * wanwan_env_get_storage_path();
 
 
+// returns the maximum number of characters a user is allowed 
+// to have in their query in hex form. The default is a query of 
+// 32 KB
+uint64_t wanwan_env_get_max_query_length();
+
 
 
 

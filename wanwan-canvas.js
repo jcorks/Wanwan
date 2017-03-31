@@ -33,7 +33,8 @@ Wanwan.Canvas.SoftUpdate = function(){}
 
 
 
-
+// TODO: canvas should be the one to handle animations
+// animation info should be removed from client/server interactions
 
 
 
