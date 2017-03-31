@@ -56,10 +56,32 @@ Wanwan.Post = function(messageText){}
 // the first. The API may invoke default handler
 //
 // Available signals:
-//      "server-message"    function(user, message, color, animationName)
-//      "client-message"    function(message);
-//      "initialize"        function()
 //
+//  
+//      "server-message"    function(user, message, color, animationName)
+//
+//          Called when the server sends over a broadcasted message that 
+//          the client hasn't seen yet.
+//
+//      "client-message"    function(message)
+//      
+//          Called before the client sends over a new message to the channel 
+//          to broadcast. The default signal handler controls the sending of the message,
+//          so a bound user handler that returns false will prevent the message from 
+//          broadcasting.
+//
+//      "initialize"        function()
+//  
+//          Called when the client first connects to the server
+//
+//
+//      "channel-change"    function(newChannel)
+//          
+//          Called when the client requests to change channels.
+//
+//      "server-response"
+//          
+//          Called when the client has received contact from the server.
 //
 // On return, a binding ID is returned. This can be used to unbind the signal.
 Wanwan.Bind = function(signalName, handler){}
@@ -75,7 +97,7 @@ Wanwan.Unbind = function(bindingID){};
 // Queries the rooms available on the server.
 // The responseFunc is called with an array to the room names 
 // when / if the response is processed.
-Wanwan.QueryRoomList = function(responseFunc){}
+Wanwan.QueryAvailableChannels = function(responseFunc){}
 
 
 
@@ -111,21 +133,20 @@ Wanwan.QueryRoomList = function(responseFunc){}
 
 
 
-Wanwan.Start = function(canvasID, serverCGIURL) {
+Wanwan.Start = function(serverCGIURL) {
+    Wanwan.Bind("client-message", Wanwan.Client.Post);
+    Wanwan.Bind("channel-change", function(channelName){
+        Wanwan.Client.channelName = channelName;
+        return true;
+    });
+
     Wanwan.Server.URL = serverCGIURL;
     Wanwan.Name("Potato");
     Wanwan.Channel("Lobby");
-    Wanwan.Bind("client-message", Wanwan.Client.Post);
-    Wanwan.Bind("server-message", Wanwan.Canvas.AddMessage);
-
-
     setInterval(Wanwan.Client.RequestUpdate, 8500);
     Wanwan.Client.RequestUpdate();
 
-    Wanwan.Bindings.Resolve["initialize"];
-
-    
-
+    Wanwan.Bindings.Resolve["initialize"]();
 }
 
 
@@ -133,10 +154,7 @@ Wanwan.Name  = function(realName) {
     Wanwan.Client.userName = realName;
 }
 Wanwan.Channel = function(channelName) {
-    if (Wanwan.Client.channelName != channelName) {
-        Wanwan.Canvas.ClearText();
-    }
-    Wanwan.Client.channelName = channelName;
+    Wanwan.Bindings.Resolve["channel-change"](channelName);
 }
 
 Wanwan.Post = function(message) {
@@ -175,8 +193,32 @@ Wanwan.Unbind = function(bindID) {
 
 
 // bindings control signals
+// TODO: really really need a stand function for this...
 Wanwan.Bindings = {};
 Wanwan.Bindings.Resolve = {};
+
+
+Wanwan.Bindings["channel-change"] = [];
+Wanwan.Bindings.Resolve["channel-change"] = function(name) {
+    var bindings = Wanwan.Bindings["channel-change"];
+    if (bindings == null) return; // throw error ideally
+    if (!bindings.length) return;
+
+    for(var i = bindings.length-1; i >= 0; --i) {
+        if (!bindings[i](name)) return;
+    }
+}
+
+Wanwan.Bindings["server-response"] = [];
+Wanwan.Bindings.Resolve["server-response"] = function(name) {
+    var bindings = Wanwan.Bindings["server-response"];
+    if (bindings == null) return; // throw error ideally
+    if (!bindings.length) return;
+
+    for(var i = bindings.length-1; i >= 0; --i) {
+        if (!bindings[i](name)) return;
+    }
+}
 
 
 Wanwan.Bindings["server-message"] = [];
@@ -371,7 +413,7 @@ Wanwan.Server.Check = function() {
         }      
 
     }
-    requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
+    Wanwan.Bindings.Resolve["server-response"]();
     Wanwan.Server.Messages = [];
 };
 

@@ -47,11 +47,6 @@ Wanwan.Canvas.SoftUpdate = function(){}
 ////////////////////////////////////
 ////////////////////////////////////
 ////////////////////////////////////
-Wanwan.Bind("initialize", function() {
-    Wanwan.Canvas.Element = document.getElementById(Wanwan.Canvas.ElementID);
-    Wanwan.Canvas.Context = Wanwan.Canvas.Element.getContext("2d");
-    return true;
-});
 
 
 
@@ -118,6 +113,8 @@ Wanwan.Canvas.AddMessage = function(speaker, content, color, enterAnimationName)
 
     return true;
 }
+Wanwan.Bind("server-message", Wanwan.Canvas.AddMessage);
+
 
 
 
@@ -347,6 +344,25 @@ Wanwan.Canvas.Animation.Enter["Core.Shock"] = function(text, context) {
 
 
 
+
+
+
+Wanwan.Bind("initialize", function() {
+    Wanwan.Canvas.Element = document.getElementById(Wanwan.Canvas.ElementID);
+    Wanwan.Canvas.Context = Wanwan.Canvas.Element.getContext("2d");
+    return true;
+});
+
+Wanwan.Bind("channel-change", function(channel) {
+    Wanwan.Canvas.ClearText();
+    return true;
+});
+
+
+Wanwan.Bind("server-response", function() {
+    requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
+    return true;
+});
 
 
 

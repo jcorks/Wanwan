@@ -48,9 +48,10 @@
 
         // when the page loads, initialize Wanwan
         window.onload = function(){
-            Wanwan.Init("canvas", "http://localhost/bin/core.wanwan");
             Wanwan.Canvas.Font = "monospace";
             Wanwan.Canvas.FontSize = "12pt";
+            Wanwan.Canvas.ElementID = "canvas"
+            Wanwan.Start("http://localhost/bin/core.wanwan");
             manager.onresize();
         }
 
