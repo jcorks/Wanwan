@@ -226,7 +226,7 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
     }
 
     context.setTransform(1, 0, 0, 1, 0, 0);
-    Wanwan.Canvas.ViewMessageCount = Math.floor(Wanwan.Canvas.Offscreen.height / (parseInt(Wanwan.Canvas.FontSize)*1.5));
+    Wanwan.Canvas.ViewMessageCount = Math.floor(Wanwan.Canvas.Offscreen.height / (parseInt(Wanwan.Canvas.FontSize)*1.5))-1;
 
 
     // clip scroll amount
@@ -256,7 +256,7 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
 
         // clip the name area
         context.save();
-        context.rect(0, 0, Wanwan.Canvas.ReservedSpaceForNames, 200);
+        context.rect(0, -Wanwan.Canvas.Offscreen.height, Wanwan.Canvas.ReservedSpaceForNames, Wanwan.Canvas.Offscreen.height*2);
         context.clip();
         context.fillText(text.speaker + ": ", 0, 0);
         context.restore();
@@ -341,7 +341,6 @@ Wanwan.Client.SendRequest = function(str, type) {
                     Wanwan.Server.Messages.push(respArray[i]);
                 }
                 Wanwan.Server.Check();
-                console.log("Got response for request.");
                 Wanwan.Client.RequestUpdate();
     
                 // put in messages and resolve messages
@@ -354,7 +353,6 @@ Wanwan.Client.SendRequest = function(str, type) {
         }
     }
     req.send(str.length.toString() + "&" + str);
-    console.log("Sent request: " + type);
 
     if (type == 'Update') {
         Wanwan.Client.UpdateRequest = req;

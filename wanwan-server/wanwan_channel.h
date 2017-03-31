@@ -6,7 +6,7 @@
 
 typedef struct wanwan_Channel wanwan_Channel;
 
-wanwan_Channel * wanwan_channel_create(const char * name);
+wanwan_Channel * wanwan_channel_create(const char * name, const char * path);
 
 const wanwan_String * wanwan_channel_get_name(const wanwan_Channel *);
 const wanwan_String * wanwan_channel_get_description(const wanwan_Channel *);

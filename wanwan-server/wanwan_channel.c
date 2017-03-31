@@ -6,7 +6,7 @@
 #include <inttypes.h>
 
 //#define WANWAN_CHANNEL_FILE_PREFIX "ww_"
-#define WANWAN_CHANNEL_FILE_PREFIX "/home/jc/WANWAN/ww_"
+#define WANWAN_CHANNEL_FILE_PREFIX "ww_"
 #define WANWAN_CHANNEL_INDEX_SUFFIX "_index"
 #define WANWAN_CHANNEL_INFO_SUFFIX "_info"
 #define WANWAN_CHANNEL_LOCK_SUFFIX "_lock"
@@ -53,7 +53,7 @@ static int get_index_table(FILE *, uint64_t **, uint64_t * length);
 static int update_index_table(FILE *, uint64_t *, uint64_t length, uint64_t newMessagelength);
 static void wait_for_unlock(const char *);
 
-wanwan_Channel * wanwan_channel_create(const char * name) {
+wanwan_Channel * wanwan_channel_create(const char * name, const char * basePath) {
     wanwan_Channel * channel = calloc(1, sizeof(wanwan_Channel));
 
     wanwan_String * channelName = wanwan_string_create(name);
@@ -63,10 +63,10 @@ wanwan_Channel * wanwan_channel_create(const char * name) {
     }    
     char * nameStr = wanwan_string_copy_cstr(channelName);
 
-    wanwan_String * channelIndexFile   = wanwan_string_create_format("%s%s%s", WANWAN_CHANNEL_FILE_PREFIX, nameStr, WANWAN_CHANNEL_INDEX_SUFFIX);
-    wanwan_String * channelHistoryFile = wanwan_string_create_format("%s%s%s", WANWAN_CHANNEL_FILE_PREFIX, nameStr, WANWAN_CHANNEL_HISTORY_SUFFIX);
-    wanwan_String * channelInfoFile    = wanwan_string_create_format("%s%s%s", WANWAN_CHANNEL_FILE_PREFIX, nameStr, WANWAN_CHANNEL_INFO_SUFFIX);
-    wanwan_String * channelLockFile    = wanwan_string_create_format("%s%s%s", WANWAN_CHANNEL_FILE_PREFIX, nameStr, WANWAN_CHANNEL_LOCK_SUFFIX);
+    wanwan_String * channelIndexFile   = wanwan_string_create_format("%s%s%s%s",basePath, WANWAN_CHANNEL_FILE_PREFIX, nameStr, WANWAN_CHANNEL_INDEX_SUFFIX);
+    wanwan_String * channelHistoryFile = wanwan_string_create_format("%s%s%s%s",basePath, WANWAN_CHANNEL_FILE_PREFIX, nameStr, WANWAN_CHANNEL_HISTORY_SUFFIX);
+    wanwan_String * channelInfoFile    = wanwan_string_create_format("%s%s%s%s",basePath, WANWAN_CHANNEL_FILE_PREFIX, nameStr, WANWAN_CHANNEL_INFO_SUFFIX);
+    wanwan_String * channelLockFile    = wanwan_string_create_format("%s%s%s%s",basePath, WANWAN_CHANNEL_FILE_PREFIX, nameStr, WANWAN_CHANNEL_LOCK_SUFFIX);
     
     channel->name        = nameStr;
     channel->indexFile   = wanwan_string_copy_cstr(channelIndexFile);

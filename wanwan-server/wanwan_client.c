@@ -1,4 +1,5 @@
 #include "wanwan_client.h"
+#include "wanwan_env.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -63,7 +64,7 @@ wanwan_Client * wanwan_client_create(
     c->index       = UINT64_MAX;
     c->ip          = wanwan_string_create(ip);
     c->request     = wanwan_Request_Invalid;
-    c->channel     = wanwan_channel_create("");
+    c->channel     = wanwan_channel_create("", "");
     c->colorString = wanwan_string_create("#79C"); // should calculate based on ip and username
 
     // debugging only.    
@@ -85,7 +86,7 @@ wanwan_Client * wanwan_client_create(
     if (!strcmp(name, REQUEST_UPDATE)) {
         if (length != 3) goto L_FAIL;
         c->request   = wanwan_Request_Update;
-        c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[1]));
+        c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[1]), wanwan_env_get_storage_path());
         if (!sscanf(wanwan_string_get_cstr(input[2]), "%"PRIu64, &c->index)) goto L_FAIL; 
 
     } else if(!strcmp(name, REQUEST_POST)) {
@@ -94,7 +95,7 @@ wanwan_Client * wanwan_client_create(
         c->name      = wanwan_string_copy(input[1]);
         c->message   = wanwan_string_copy(input[2]);
         c->animation = wanwan_string_copy(input[3]);
-        c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[4]));
+        c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[4]), wanwan_env_get_storage_path());
         c->colorString = generate_color(c->ip, c->name);
     } 
 

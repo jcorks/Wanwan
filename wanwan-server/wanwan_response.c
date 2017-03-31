@@ -18,7 +18,10 @@ static void general_response_init() {
     if (!output)
         output = wanwan_string_create("");
     
-    wanwan_string_concatenate_cstr(output, "Content-type: text/plain\n\n");
+    // add the plaintext flag and the CORS header
+
+    wanwan_string_concatenate_cstr(output, "Content-type: text/plain\n");
+    wanwan_string_concatenate_cstr(output, "Access-Control-Allow-Origin: *\n\n");
 }
 
 

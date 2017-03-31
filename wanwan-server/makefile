@@ -1,2 +1,2 @@
 all:
-	gcc *.c -g -Wall -o core.wanwan -fsanitize=address -fsanitize=undefined
+	gcc *.c -g -fsanitize=address -fsanitize=undefined -Wall -o core.wanwan
