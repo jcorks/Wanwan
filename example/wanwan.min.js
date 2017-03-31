@@ -41,9 +41,44 @@ Wanwan.Post = function(messageText){}
 
 
 
-// an option function to set that will run when a new message is about
-// to be registered. 
-Wanwan.onpost = function(user, messsage, color, animationName){return true;}
+// Binds an additional function to a signal
+//
+//  Wanwan.Bind("new-message", function(user, messsage, color, animationName)){
+//      console.log("User " + user + " says: '" + message + "' in the formatted color " + color + " with animation " + animationName);
+//  });
+//
+// would print a log line with all the message available from a bind.
+// Since multiple binds can be called, each handler for a bind can 
+// return whether to propogate the handling of the signal. If true is returned, 
+// the signal continues propogation. If false, the signal is no longer propogated.
+// Note that that the propogation order is based on the order in which it was bound
+// where the first bound signal handler is the last to be processed and the most recent 
+// the first. The API may invoke default handler
+//
+// Available signals:
+//      "server-message"    function(user, message, color, animationName)
+//      "client-message"   function(message);
+//
+//
+//
+// On return, a binding ID is returned. This can be used to unbind the signal.
+Wanwan.Bind = function(signalName, handler){}
+
+
+// Removes a binding
+Wanwan.Unbind = function(bindingID){};
+
+
+
+
+
+// Queries the rooms available on the server.
+// The responseFunc is called with an array to the room names 
+// when / if the response is processed.
+Wanwan.QueryRoomList = function(responseFunc){}
+
+
+
 
 
 
@@ -118,6 +153,9 @@ Wanwan.Init = function(canvasID, serverCGIURL) {
     Wanwan.Server.URL = serverCGIURL;
     Wanwan.Name("Potato");
     Wanwan.Channel("Lobby");
+    Wanwan.Bind("client-message", Wanwan.Client.Post);
+    Wanwan.Bind("server-message", Wanwan.Canvas.AddMessage);
+
 
     setInterval(Wanwan.Client.RequestUpdate, 8500);
     Wanwan.Client.RequestUpdate();
@@ -136,7 +174,36 @@ Wanwan.Channel = function(channelName) {
 }
 
 Wanwan.Post = function(message) {
-    Wanwan.Client.Post(message);
+    Wanwan.Bindings.Resolve["client-message"](message);
+}
+
+
+Wanwan.Bind = function(signalName, handler) {
+    var bindID = {};
+    var bindList = Wanwan.Bindings[signalName];
+    if (bindList == null) return bindID;
+
+    bindID.signal = signalName;
+    bindID.id     = handler;
+
+        
+    bindList.reverse();
+    bindList.push(handler);
+    bindList.reverse();
+
+    return bindID;
+}
+
+
+Wanwan.Unbind = function(bindID) {
+    if (bindID == null) return;
+    var bindList = Wanwan.Bindings[bindID.signal];
+    if (!bindList) return;
+    
+    for(var i = 0; i < bindList.length; ++i) {
+        if (bindList[i] == bindID.id)
+            bindList.splice(i, 1);
+    }
 }
 
 
@@ -149,6 +216,37 @@ Wanwan.Canvas.FullUpdate = function() {
     if (Wanwan.Canvas.Context == null) return;
     Wanwan.Canvas.UpdateFramebuffer();
 }
+
+
+
+// bindings control signals
+Wanwan.Bindings = {};
+Wanwan.Bindings.Resolve = {};
+
+
+Wanwan.Bindings["server-message"] = [];
+Wanwan.Bindings.Resolve["server-message"] = function(name, message, color, anime) {
+    var bindings = Wanwan.Bindings["server-message"];
+    if (bindings == null) return; // throw error ideally
+    if (!bindings.length) return;
+
+    for(var i = bindings.length-1; i >= 0; --i) {
+        if (!bindings[i](name, message, color, anime)) return;
+    }
+}
+
+Wanwan.Bindings["client-message"] = [];
+Wanwan.Bindings.Resolve["client-message"] = function(message) {
+    var bindings = Wanwan.Bindings["client-message"];
+    if (bindings == null) return; // throw error ideally
+    if (!bindings.length) return;
+
+    for(var i = bindings.length-1; i >= 0; --i) {
+        if (!bindings[i](message)) return;
+    }
+}
+
+
 
 
 
@@ -198,7 +296,7 @@ Wanwan.Canvas.AddMessage = function(speaker, content, color, enterAnimationName)
         text.onEnter = Wanwan.Canvas.Animation.Enter["default"];
     Wanwan.Canvas.Text.push(text);
 
-
+    return true;
 }
 
 
@@ -360,29 +458,6 @@ Wanwan.Client.SendRequest = function(str, type) {
         Wanwan.Client.RequestUpdate();
     }
 
-
-
-    /*
-    var controller = Wanwan.Client.ScriptController[type];
-
-    if (controller != null) {
-        document.body.removeChild(controller);
-    }
-
-    controller    = document.createElement("script");
-    controller.id = "WANWAN_js_request";
-    controller.setAttribute("type", "text/javascript");
-
-
-    //console.log("I want to send ->" + str);
-    //console.log("(" + Wanwan.Server.Dehexify(str) + ")");
-
-    controller.setAttribute("src", Wanwan.Server.URL+"?"+str);
-    controller.setAttribute("async", "async");
-    var body = document.body;
-    body.appendChild(controller);
-    Wanwan.Client.ScriptController[type] = controller
-    */
 }
 
 
@@ -391,6 +466,8 @@ Wanwan.Client.SendRequest = function(str, type) {
 // posts a new message to the server
 // (the client wont show those changes until acknowledged from the server
 Wanwan.Client.Post = function(message) {
+
+    
 
     var anime = "Core.Speech";
     if (message.length >= 4 &&
@@ -420,6 +497,8 @@ Wanwan.Client.Post = function(message) {
 
     clearTimeout(Wanwan.Server.NeedsUpdateID);
     Wanwan.Server.NeedsUpdateID = null;
+
+    return true;
     
 }
 
@@ -465,7 +544,7 @@ Wanwan.Server.Check = function() {
           case "WANWANMSG":
             if (packet.length != 6) continue;
             if (Wanwan.Client.index >= parseInt(packet[5])) continue;
-            Wanwan.Canvas.AddMessage(
+            Wanwan.Bindings.Resolve["server-message"](
                 packet[1], packet[2],
                 packet[3],
                 Wanwan.Server.Messages.length > 8 ? "Default" : packet[4]
