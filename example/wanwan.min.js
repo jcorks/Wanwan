@@ -1,5 +1,5 @@
 var Wanwan = {};
-Wanwan.Canvas = {};
+
 
 
 
@@ -39,7 +39,7 @@ Wanwan.Channel = function(name){}
 //
 // By default, the shown animation is rolling text style. If an unknown 
 // animation is given, the text is instantly displayed. 
-Wanwan.Post = function(messageText){}
+Wanwan.Send = function(messageText){}
 
 
 
@@ -159,7 +159,7 @@ Wanwan.Channel = function(channelName) {
     Wanwan.Bindings.Resolve("channel-change", [channelName]);
 }
 
-Wanwan.Post = function(message) {
+Wanwan.Send = function(message) {
     Wanwan.Bindings.Resolve("client-message", [message]);
 }
 
@@ -279,17 +279,6 @@ Wanwan.Client.Post = function(message) {
 
     
 
-    var anime = "Core.Speech";
-    if (message.length >= 4 &&
-        message[0] == '[' && 
-        message[2] == ']') {
-        switch(message[1]) {
-          case '~': anime = "Core.Wavey"; break;
-          case '!': anime = "Core.Shock"; break;
-        }
-
-        message = message.substring(3, message.length);
-    }
 
     
     // form basic message
@@ -297,7 +286,6 @@ Wanwan.Client.Post = function(message) {
     out.push("WANWANPOST");
     out.push(Wanwan.Client.userName);
     out.push(encodeURIComponent(message));
-    out.push(anime);
     out.push(Wanwan.Client.channelName);
 
 
@@ -353,17 +341,16 @@ Wanwan.Server.Check = function() {
         switch(packet[0]) {
 
           case "WANWANMSG":
-            if (packet.length != 6) continue;
-            if (Wanwan.Client.index >= parseInt(packet[5])) continue;
+            if (packet.length != 5) continue;
+            if (Wanwan.Client.index >= parseInt(packet[4])) continue;
             Wanwan.Bindings.Resolve("server-message", 
                 [
                     packet[1],  // user
                     decodeURIComponent(packet[2]),  // message
-                    packet[3],  // color
-                    Wanwan.Server.Messages.length > 8 ? "Default" : packet[4]
+                    packet[3]  // color
                 ]
             );
-            Wanwan.Client.index = parseInt(packet[5]);
+            Wanwan.Client.index = parseInt(packet[4]);
 
             break;
           default:;

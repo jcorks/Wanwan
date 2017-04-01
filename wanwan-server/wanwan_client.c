@@ -16,7 +16,6 @@ struct wanwan_Client {
     wanwan_String * colorString;
     wanwan_String * ip;
     wanwan_String * message;
-    wanwan_String * animation;
     wanwan_Channel * channel;
     uint64_t index;
     wanwan_ClientRequest request;
@@ -90,12 +89,11 @@ wanwan_Client * wanwan_client_create(
         if (!sscanf(wanwan_string_get_cstr(input[2]), "%"PRIu64, &c->index)) goto L_FAIL; 
 
     } else if(!strcmp(name, REQUEST_POST)) {
-        if (length != 5) goto L_FAIL;
+        if (length != 4) goto L_FAIL;
         c->request   = wanwan_Request_PostMessage;      
         c->name      = wanwan_string_copy(input[1]);
         c->message   = wanwan_string_copy(input[2]);
-        c->animation = wanwan_string_copy(input[3]);
-        c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[4]), wanwan_env_get_storage_path());
+        c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[3]), wanwan_env_get_storage_path());
         c->colorString = generate_color(c->ip, c->name);
     } 
 
@@ -127,9 +125,6 @@ const wanwan_String * wanwan_client_get_message(const wanwan_Client * c) {
     return c->message;
 }
 
-const wanwan_String * wanwan_client_get_animation(const wanwan_Client * c) {
-    return c->animation;
-}
 
 
 wanwan_ClientRequest wanwan_client_get_request(const wanwan_Client * c) {

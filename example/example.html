@@ -8,36 +8,65 @@
 
 <body 
       style="background-color: #555 ;color: #CCC;">
-    <div>
+    <div  style="font-family: monospace; font-size: 12pt;">
 
     <!-- this is where any output will appear -->
-    <div id="output" style="font-family: monospace; font-size: 12pt;">
+    <div id="output">
 
     </div>
+    <div>
+        <input type="text" id="nameEntry" 
+            style="color: #DDD; background: rgb(100, 100, 100); 
+                   border: none; width: 15%; outline: none;
+                   float: left;
+                   height:30px;
+                   "
+            value="Potato"></input>
+
+        <input type="text" id="command" 
+            style="color: #DDD; background: rgba(0, 0, 0, 1.0); 
+                   border: none; width: 78%; outline: none;                   float: left;
+                   height:30px;
+                   "
+            onkeydown = "SendMessage(event)"></input>
+        </div>
+    </div>
+
 
     <script type="text/javascript" src= "wanwan.min.js"></script>
+    <script type="text/javascript" src= "example-helper.js"?></script>
     <script>
-        Wanwan.Name("TestUser");
+
+        Wanwan.Name("Potato");
         Wanwan.Channel("Lobby");
-        
+
         // we're going to make it so that 
         // any time the browser receives a message, we'll post it 
         // to the "output" div.
+        Wanwan.Bind("server-message", ShowMessage);
 
-        Wanwan.Bind("server-message", function(user, message, color, animationName){
-            var element = document.getElementById("output");
-            var node = document.createElement("div");
-            var sub = document.createTextNode(user + ":   " + message);
-            node.appendChild(sub);
-            node.style = "color:" + color + ";";
-            element.appendChild(node);
-            window.scrollBy(0, 500);
 
+
+        // This is just for liability reasons.  
+        // otherwise, you can just start i guess.
+        ShowMessage("*", "Welcome to the Wanwan chat demo!", "rgb(0, 255, 255)");
+        ShowMessage("*", "Please note that this is a live demo and that anyone can join as anyone else.", "rgb(0, 255, 255)");
+        ShowMessage("*", "As such, by joining this, you agree to and acknowledge that the developers of Wanwan are not liable for any effects from the user content of this chat program.", "rgb(0, 255, 255)");
+        ShowMessage("*", "You also must be above 18 years of age to join.", "rgb(0, 255, 255)");
+        ShowMessage("*", "", "rgb(0, 255, 255)");
+        ShowMessage("*", "Continue?", "rgb(0, 255, 255)");
+
+        Ask(onresponse=function(response){
+            if (response == "yes" ||
+                response == "y"   ||
+                response == "ok"  ||
+                response == "continue") {
+                Wanwan.Start("http://localhost/bin/core.wanwan");
+            } else {
+                ShowMessage("*", "Ok...", "rgb(0, 255, 255);");
+            }
         });
 
-        Wanwan.Start("http://localhost/bin/core.wanwan");
-
-    
 
     </script>
 

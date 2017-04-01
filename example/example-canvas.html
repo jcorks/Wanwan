@@ -6,23 +6,21 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=.5">
 
-<body onresize="manager.onresize()"
+<body onresize="Wanwan.Canvas.FullUpdate();"
       style="background-color: #555 ;color: #CCC;">
     <div>
     <canvas id="canvas" width="400" height="400" style="background-color:rgb(64, 64, 64);" onresize="manager.onresize()"></canvas>
 
     <script type="text/javascript" src= "wanwan.min.js"></script>
     <script type="text/javascript" src= "wanwan-canvas.min.js"></script>
-
+    <script type="text/javascript" src= "example-helper.js"></script>
 
     <!-- Define input regions for both the name and 
          message. The name precedes the message -->
-    <div>
+    <div style="font-family: monospace; font-size: 15px;">
         <input type="text" id="nameEntry" 
             style="color: #DDD; background: rgb(100, 100, 100); 
                    border: none; width: 15%; outline: none;
-                   font-family: monospace;
-                   font-size: 15px;
                    float: left;
                    height:30px;
                    "
@@ -31,13 +29,10 @@
         <input type="text" id="command" 
             style="color: #DDD; background: rgba(0, 0, 0, 1.0); 
                    border: none; width: 78%; outline: none;
-                   font-family: monospace;
-                   font-size: 15px;
                    float: left;
                    height:30px;
-
                    "
-            onkeydown = "manager.input(event);"></input>
+            onkeydown = "SendMessage(event)"></input>
         </div>
     </div>
 
@@ -46,57 +41,48 @@
     <!-- Management setup.t -->
     <script>
 
-        // when the page loads, initialize Wanwan
-        window.onload = function(){
-            Wanwan.Canvas.Font = "monospace";
-            Wanwan.Canvas.FontSize = "12pt";
-            Wanwan.Canvas.ElementID = "canvas"
-            Wanwan.Start("http://localhost/bin/core.wanwan");
-            manager.onresize();
-        }
+        // In this example, let's jus 
+        var canvas = document.getElementById("canvas"); 
+        canvas.width  = window.innerWidth;
+        canvas.height = (window.innerHeight - 70);
+
+        // Lets setup some initial attributes of the canvas
+        Wanwan.Canvas.Font      = "monospace";
+        Wanwan.Canvas.FontSize  = "12pt";
+        Wanwan.Canvas.Element   = canvas;
 
 
-        var manager = {};
-            manager.once = false;
-
-        // Just resizes elements with the screen
-        manager.onresize = function() { 
-            var canvas = document.getElementById("canvas"); 
-            if (!manager.once) {
-                canvas.width  = window.innerWidth;
-                canvas.height = (window.innerHeight - 70);
-                manager.once = true;
-            }
-            document.getElementById("command").width = window.innerWidth*0.78;
-            document.getElementById("nameEntry").width = window.innerWidth*0.15;
-
-            // snce the canvas size probably cheanged, tell the canvas
-            // to be redrawn
-            Wanwan.Canvas.FullUpdate();
-        }
 
 
-        // send the mesage on enter
-        manager.input = function(event) {
-            if (event.keyCode == 13) {
-                
-                Wanwan.Name(textContent = document.getElementById("nameEntry").value); 
-                textContent = document.getElementById("command").value; 
-                document.getElementById("command").value = "";
 
-                Wanwan.Post(textContent);
-            }
-        }
-
-        // add whell control if available
-        document.getElementById("canvas").addEventListener("wheel", function(event) {
+        // add wheel control if available
+        canvas.addEventListener("wheel", function(event) {
             if (event.deltaY > 0) Wanwan.Canvas.VerticalScroll++;
             if (event.deltaY < 0) Wanwan.Canvas.VerticalScroll--;
             Wanwan.Canvas.FullUpdate();
             return false;
         }, false);
 
+        Wanwan.Canvas.PostMessage("*", "Welcome to the Wanwan chat demo!", "rgb(0, 255, 255)");
+        Wanwan.Canvas.PostMessage("*", "Please note that this is a live demo and that anyone can join as anyone else.", "rgb(0, 255, 255)");
+        Wanwan.Canvas.PostMessage("*", "As such, by joining this, you agree to and acknowledge that the developers of Wanwan are not liable for any effects from the user content of this chat program.", "rgb(0, 255, 255)");
+        Wanwan.Canvas.PostMessage("*", "You also must be above 18 years of age to join.", "rgb(0, 255, 255)");
+        Wanwan.Canvas.PostMessage("*", "", "rgb(0, 255, 255)");
+        Wanwan.Canvas.PostMessage("*", "Continue?", "rgb(0, 255, 255)");
 
+
+        Ask(onresponse=function(response){
+            if (response == "yes" ||
+                response == "y"   ||
+                response == "ok"  ||
+                response == "continue") {
+                Wanwan.Start("http://localhost/bin/core.wanwan");
+            } else {
+                Wanwan.Canvas.PostMessage("*", "Ok...", "rgb(0, 255, 255);");
+            }
+        });
+
+        Wanwan.Canvas.FullUpdate();
         
 
     </script>

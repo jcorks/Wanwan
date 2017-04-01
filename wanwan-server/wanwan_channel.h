@@ -19,8 +19,7 @@ uint64_t              wanwan_channel_get_messages_since(const wanwan_Channel *, 
 void                  wanwan_channel_write_message(const wanwan_Channel *, 
                                                    const wanwan_String * name, 
                                                    const wanwan_String * message, 
-                                                   const wanwan_String * color,
-                                                   const wanwan_String * animation);
+                                                   const wanwan_String * color);
 
 // returns whether the channel actually phsyically exists on the server.
 int                   wanwan_channel_exists(const wanwan_Channel *);

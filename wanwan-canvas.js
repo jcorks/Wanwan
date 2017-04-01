@@ -1,6 +1,9 @@
 /// Canvas-related functions and properties
+Wanwan.Canvas = {};
 
-Wanwan.Canvas.ElementID = "";
+
+Wanwan.Canvas.Element = document.getElementById(Wanwan.Canvas.ElementID);
+
 
 // Sets the font to use for the canvas text rendering
 Wanwan.Canvas.Font = "monospace";
@@ -27,6 +30,13 @@ Wanwan.Canvas.SoftUpdate = function(){}
 
 
 
+// Manually shows a message post on the canvas 
+// 
+Wanwan.Canvas.PostMessage = function(username, message, color){}
+
+
+// Clears all shown messages from the canvas.
+Wanwan.Canvas.ClearText = function(){}
 
 
 
@@ -52,15 +62,13 @@ Wanwan.Canvas.SoftUpdate = function(){}
 
 
 Wanwan.Canvas.SoftUpdate = function() {
-    if (Wanwan.Canvas.Context == null) return;
+    if (Wanwan.Canvas.Element == null) return;
     Wanwan.Canvas.Update();
 }
 
 Wanwan.Canvas.FullUpdate = function() {
-    if (Wanwan.Canvas.Context == null) return;
     Wanwan.Canvas.UpdateFramebuffer();
 }
-
 
 
 
@@ -78,6 +86,9 @@ Wanwan.Canvas.Offscreen = document.createElement('canvas');
 
 
 
+Wanwan.Canvas.ClearText = function() {
+    Wanwan.Canvas.Text = [];
+}
 
 // The default text enter animation. should return true when 
 // the animation is finished.
@@ -96,25 +107,41 @@ Wanwan.Canvas.Animation.Enter["default"] = function(text, context) {
 
 
 // adds additional text to the main canvas area
-Wanwan.Canvas.AddMessage = function(speaker, content, color, enterAnimationName) {
+Wanwan.Canvas.PostMessage = function(speaker, message, color) {
     if (Wanwan.Canvas.VerticalScroll >= Wanwan.Canvas.Text.length - Wanwan.Canvas.ViewMessageCount)
         Wanwan.Canvas.VerticalScroll++;
 
+
+    var anime = "Core.Speech";
+    if (message.length >= 4 &&
+        message[0] == '[' && 
+        message[2] == ']') {
+        switch(message[1]) {
+          case '~': anime = "Core.Wavey"; break;
+          case '!': anime = "Core.Shock"; break;
+        }
+
+        message = message.substring(3, message.length);
+    }
+
+
+
+
     var text = {};
     text.speaker        = speaker;
-    text.content        = content;
+    text.content        = message;
     text.color          = color;
-    text.onEnter        = Wanwan.Canvas.Animation.Enter[enterAnimationName];
+    text.onEnter        = Wanwan.Canvas.Animation.Enter[anime];
     text.enterFinished  = false;
     text.persist        = {};
 
     if (text.onEnter == null) 
         text.onEnter = Wanwan.Canvas.Animation.Enter["default"];
+
     Wanwan.Canvas.Text.push(text);
 
     return true;
 }
-Wanwan.Bind("server-message", Wanwan.Canvas.AddMessage);
 
 
 
@@ -203,6 +230,7 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
 
 
 Wanwan.Canvas.Update = function() {
+    Wanwan.Canvas.Context = Wanwan.Canvas.Element.getContext("2d");
     Wanwan.Canvas.Context.clearRect(0, 0, Wanwan.Canvas.Element.width, Wanwan.Canvas.Element.height);
     Wanwan.Canvas.Context.drawImage(Wanwan.Canvas.Offscreen, 
         0, 0, Wanwan.Canvas.Offscreen.width, Wanwan.Canvas.Offscreen.height, 
@@ -348,11 +376,6 @@ Wanwan.Canvas.Animation.Enter["Core.Shock"] = function(text, context) {
 
 
 
-Wanwan.Bind("initialize", function() {
-    Wanwan.Canvas.Element = document.getElementById(Wanwan.Canvas.ElementID);
-    Wanwan.Canvas.Context = Wanwan.Canvas.Element.getContext("2d");
-    return true;
-});
 
 Wanwan.Bind("channel-change", function(channel) {
     Wanwan.Canvas.ClearText();
@@ -364,6 +387,8 @@ Wanwan.Bind("server-response", function() {
     requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
     return true;
 });
+
+Wanwan.Bind("server-message", Wanwan.Canvas.PostMessage);
 
 
 

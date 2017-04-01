@@ -42,8 +42,7 @@ int main(int argc, char **argv) {
             wanwan_client_get_channel   (client), 
             wanwan_client_get_name      (client),
             wanwan_client_get_message   (client),
-            wanwan_client_get_color     (client),
-            wanwan_client_get_animation (client)
+            wanwan_client_get_color     (client)
         );
         wanwan_response_send();
         break;

@@ -183,16 +183,14 @@ void wanwan_channel_write_message(
         const wanwan_Channel *c,  
         const wanwan_String * name,
         const wanwan_String * messageText,
-        const wanwan_String * color,
-        const wanwan_String * animation) {
-    wanwan_String * message[6];
+        const wanwan_String * color) {
+    wanwan_String * message[5];
 
     message[0] = (wanwan_String*)wanwan_string_create("WANWANMSG");
     message[1] = (wanwan_String*)name;
     message[2] = (wanwan_String*)messageText;
     message[3] = (wanwan_String*)color;
-    message[4] = (wanwan_String*)animation;
-    message[5] = (wanwan_String*)wanwan_string_create("");    
+    message[4] = (wanwan_String*)wanwan_string_create("");    
 
     // history should get updated first, then index.
     // flush when done.
@@ -215,11 +213,11 @@ void wanwan_channel_write_message(
     FILE * index = fopen(c->indexFile, "rb");
     get_index_table(index, &indexData, &indexLength);
     fclose(index);
-    wanwan_string_concatenate_format(message[5], "%"PRIu64"", indexLength+1);
+    wanwan_string_concatenate_format(message[4], "%"PRIu64"", indexLength+1);
     
 
     // convert message to single hex string and insert it in channel's history
-    wanwan_String * hexMessage = wanwan_string_hexify(message, 6);
+    wanwan_String * hexMessage = wanwan_string_hexify(message, 5);
     FILE * history = fopen(c->historyFile, "ab");
     const char * str = wanwan_string_get_cstr(hexMessage);
     fwrite(str, 1, wanwan_string_length(hexMessage), history);
@@ -237,7 +235,7 @@ void wanwan_channel_write_message(
 
     remove(c->lockFile);
     wanwan_string_destroy(message[0]);
-    wanwan_string_destroy(message[5]);
+    wanwan_string_destroy(message[4]);
 }
 
 
