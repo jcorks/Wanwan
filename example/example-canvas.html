@@ -66,8 +66,8 @@
         Wanwan.Canvas.PostMessage("*", "Welcome to the Wanwan chat demo!", "rgb(0, 255, 255)");
         Wanwan.Canvas.PostMessage("*", "Please note that this is a live demo and that anyone can join as anyone else.", "rgb(0, 255, 255)");
         Wanwan.Canvas.PostMessage("*", "As such, by joining this, you agree to and acknowledge that the developers of Wanwan are not liable for any effects from the user content of this chat program.", "rgb(0, 255, 255)");
-        Wanwan.Canvas.PostMessage("*", "You also must be above 18 years of age to join.", "rgb(0, 255, 255)");
-        Wanwan.Canvas.PostMessage("*", "", "rgb(0, 255, 255)");
+        Wanwan.Canvas.PostMessage("*", "You also must be above 18 years of age to use this.", "rgb(0, 255, 255)");
+        Wanwan.Canvas.PostMessage("*", " ", "rgb(0, 255, 255)");
         Wanwan.Canvas.PostMessage("*", "Continue?", "rgb(0, 255, 255)");
 
 
@@ -77,13 +77,16 @@
                 response == "ok"  ||
                 response == "continue") {
                 Wanwan.Start("http://localhost/bin/core.wanwan");
+                for(var i = 0; i < 20; ++i) 
+                    Wanwan.Send("Filler message" + i);
+                
             } else {
                 Wanwan.Canvas.PostMessage("*", "Ok...", "rgb(0, 255, 255);");
             }
         });
 
         Wanwan.Canvas.FullUpdate();
-        
+
 
     </script>
 </body>
