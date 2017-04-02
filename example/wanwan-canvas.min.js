@@ -216,7 +216,7 @@ Wanwan.Canvas.DrawView = function(context, viewBaseline, viewHeight) {
     for(var i = 0; i < objs.length; ++i) {
         needsUpdate+=Wanwan.Canvas.DrawMessage(context, objs[i], viewBaseline);
     }
-    Wanwan.Canvas.Text.messagesToProcess = 0;
+    Wanwan.Canvas.Properties.messagesToProcess = 0;
     return needsUpdate!=0;
 }
 

@@ -77,9 +77,6 @@
                 response == "ok"  ||
                 response == "continue") {
                 Wanwan.Start("http://localhost/bin/core.wanwan");
-                for(var i = 0; i < 20; ++i) 
-                    Wanwan.Send("Filler message" + i);
-                
             } else {
                 Wanwan.Canvas.PostMessage("*", "Ok...", "rgb(0, 255, 255);");
             }

@@ -228,10 +228,11 @@ Wanwan.Client.SendRequest = function(str, type) {
     // Request JS to run from the WANWAN server
     // eventually this will populate a single string buffer of hex 
     // to be encoded / decoded in a correct format.
-
+    // We should always have an update request active
+    // that the server is serving.
 
     // posts cancel Updates
-    if (Wanwan.Client.UpdateRequest) {
+    if (type == 'Update' && Wanwan.Client.UpdateRequest) {
         Wanwan.Client.UpdateRequest.abort();
     }
 
@@ -264,8 +265,6 @@ Wanwan.Client.SendRequest = function(str, type) {
 
     if (type == 'Update') {
         Wanwan.Client.UpdateRequest = req;
-    } else if (type == 'Post') {
-        Wanwan.Client.RequestUpdate();
     }
 
 }
