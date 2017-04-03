@@ -121,8 +121,6 @@ Wanwan.Canvas.UpdateMessageMetrics = function(context, text, textIndex) {
 
 // adds additional text to the main canvas area
 Wanwan.Canvas.PostMessage = function(speaker, message, color) {
-    if (Wanwan.Canvas.VerticalScroll >= Wanwan.Canvas.Properties.Span - Wanwan.Canvas.ViewMessageCount)
-        Wanwan.Canvas.VerticalScroll++;
 
 
     var anime = Wanwan.Canvas.DefaultAnimation;
@@ -151,6 +149,8 @@ Wanwan.Canvas.PostMessage = function(speaker, message, color) {
 
     if (text.onEnter == null) 
         text.onEnter = Wanwan.Canvas.Animation.Enter["default"];
+    
+    var pushToEnd = (Wanwan.Canvas.VerticalScroll >= Wanwan.Canvas.Properties.Span - Wanwan.Canvas.ViewMessageCount)
 
     Wanwan.Canvas.Text.push(text);
     if (context) {
@@ -160,6 +160,9 @@ Wanwan.Canvas.PostMessage = function(speaker, message, color) {
             Wanwan.Canvas.Text.length-1
         );
     }
+
+    if (pushToEnd) Wanwan.Canvas.VerticalScroll+= text.contentWrapped ? text.contentWrapped.length : 1;
+
     Wanwan.Canvas.Properties.messagesToProcess++;
 
     return true;
