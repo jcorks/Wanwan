@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#define REQUEST_QUERY  "WANWANSQRY"
 #define REQUEST_POST   "WANWANPOST"
 #define REQUEST_UPDATE "WANWANUPDT"
 
@@ -19,6 +20,7 @@ struct wanwan_Client {
     wanwan_Channel * channel;
     uint64_t index;
     wanwan_ClientRequest request;
+    uint64_t clientVersion;
 };
 
 wanwan_String * generate_color(const wanwan_String * ip, const wanwan_String * name) {
@@ -60,11 +62,12 @@ wanwan_Client * wanwan_client_create(
 
     uint32_t i;
     wanwan_Client * c = calloc(1, sizeof(wanwan_Client));
-    c->index       = UINT64_MAX;
-    c->ip          = wanwan_string_create(ip);
-    c->request     = wanwan_Request_Invalid;
-    c->channel     = wanwan_channel_create("", "");
-    c->colorString = wanwan_string_create("#79C"); // should calculate based on ip and username
+    c->index         = UINT64_MAX;
+    c->ip            = wanwan_string_create(ip);
+    c->request       = wanwan_Request_Invalid;
+    c->channel       = wanwan_channel_create("", "");
+    c->colorString   = wanwan_string_create("#79C"); // should calculate based on ip and username
+    c->clientVersion = 0;
 
     // debugging only.    
     if (!wanwan_string_length(c->ip))
@@ -87,7 +90,6 @@ wanwan_Client * wanwan_client_create(
         c->request   = wanwan_Request_Update;
         c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[1]), wanwan_env_get_storage_path());
         if (!sscanf(wanwan_string_get_cstr(input[2]), "%"PRIu64, &c->index)) goto L_FAIL; 
-
     } else if(!strcmp(name, REQUEST_POST)) {
         if (length != 4) goto L_FAIL;
         c->request   = wanwan_Request_PostMessage;      
@@ -95,7 +97,11 @@ wanwan_Client * wanwan_client_create(
         c->message   = wanwan_string_copy(input[2]);
         c->channel   = wanwan_channel_create(wanwan_string_get_cstr(input[3]), wanwan_env_get_storage_path());
         c->colorString = generate_color(c->ip, c->name);
-    } 
+    } else if(!strcmp(name, REQUEST_QUERY)) {
+        if (length != 2) goto L_FAIL;
+        c->request   = wanwan_Request_ServerQuery;
+        if (!sscanf(wanwan_string_get_cstr(input[1]), "%"PRIu64, &c->clientVersion)) goto L_FAIL; 
+    }
 
 
 
@@ -133,6 +139,10 @@ wanwan_ClientRequest wanwan_client_get_request(const wanwan_Client * c) {
 
 const wanwan_Channel * wanwan_client_get_channel(const wanwan_Client * c) {
     return c->channel;
+}
+
+uint64_t wanwan_client_get_version(const wanwan_Client * c) {
+    return c->clientVersion;
 }
 
 

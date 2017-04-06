@@ -7,7 +7,17 @@
 typedef struct wanwan_Client wanwan_Client;
 
 
+
 typedef enum {
+
+    // Server/Client check.
+    // Asks the server if the connecting client is okay to use. 
+    // Note that the server should be able to handle any kind of 
+    // input. This is merely for the client.
+    //  
+    // 0 WANWANSQRY 0
+    // 0 client version integer (in string form) 0
+
     wanwan_Request_ServerQuery, // response with either Accept / Deny. Incites checking of server compatability
 
     // Post Message 
@@ -44,6 +54,7 @@ const wanwan_String * wanwan_client_get_ip(const wanwan_Client *);
 const wanwan_String * wanwan_client_get_message(const wanwan_Client *);
 uint64_t              wanwan_client_get_index(const wanwan_Client *);
 const wanwan_Channel * wanwan_client_get_channel(const wanwan_Client *);
+uint64_t              wanwan_client_get_version(const wanwan_Client *);
 wanwan_ClientRequest wanwan_client_get_request();
 
 

@@ -493,7 +493,7 @@ Wanwan.Canvas.Animation.Enter["Core.Shock"] = function(text, context) {
 
 
 
-Wanwan.Bind("channel-change", function(channel) {
+Wanwan.Bind("server-accept", function(channel) {
     Wanwan.Canvas.ClearText();
     return true;
 });

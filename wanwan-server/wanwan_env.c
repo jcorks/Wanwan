@@ -1,4 +1,5 @@
 #include "wanwan_env.h"
+#include "wanwan_abort.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -13,7 +14,7 @@ int wanwan_env_get_disable_cors_header() {
     enable = malloc(1);
     assert(enable);        
     
-    char * src = getenv("WANWAN_SERVER__USE_CORS");
+    char * src = getenv("WANWAN_SERVER__DISABLE_CORS");
 
     // if no entry, assume it is enabled.
     if (!src) 
@@ -73,10 +74,20 @@ const char * wanwan_env_get_storage_path() {
 
     char * src = getenv("WANWAN_SERVER__STORAGE_PATH");
     if (!src)
-        path = "/home/jc/WANWAN/";
+        wanwan_abort();
     else 
         path = strdup(src);
     return wanwan_env_get_storage_path();
 }
 
 
+int wanwan_env_get_allow_channel_creation() {
+    static char * path = NULL;
+    if (path) return *path; 
+
+    path = malloc(1);
+
+
+    *path = getenv("WANWAN_SERVER__ENABLE_CHANNEL_CREATION")!=NULL;
+    return wanwan_env_get_allow_channel_creation();
+}

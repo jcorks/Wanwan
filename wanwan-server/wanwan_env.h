@@ -8,7 +8,7 @@
 // the CORS header, disallowing Wanwan server responses from a 
 // different domain. The default is FALSE.
 //
-// environemnt variable:
+// To disable, just define environemnt variable:
 //
 //      WANWAN_SERVER__DISABLE_CORS
 //
@@ -31,6 +31,20 @@ const char * wanwan_env_get_query();
 //
 //      WANWAN_SERVER__STORAGE_PATH
 const char * wanwan_env_get_storage_path();
+
+
+// returns whether users are allowed to add channels. The default is to 
+// disallow it.
+//
+// To allow, just define the environment variable:
+//
+//      WANWAN_SERVER__ENABLE_CHANNEL_CREATION
+//
+int wanwan_env_get_allow_channel_creation();
+
+
+
+
 
 
 // returns the maximum number of characters a user is allowed 

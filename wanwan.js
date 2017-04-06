@@ -59,7 +59,15 @@ Wanwan.Send = function(messageText){}
 //
 // Available signals:
 //
+//      "server-accept"    function()
 //  
+//          Called when the intial connection to the server is successful
+//
+//      "server-deny"       function()
+//
+//          Called in the case that, when first attempting to connect, the server 
+//          identifies the client as incompatible. Usually this is a versioning issue.
+//
 //      "server-message"    function(user, message, color, animationName)
 //
 //          Called when the server sends over a broadcasted message that 
@@ -136,6 +144,7 @@ Wanwan.QueryAvailableChannels = function(responseFunc){}
 
 
 Wanwan.Start = function(serverCGIURL) {
+    Wanwan.Bind("server-accept", Wanwan.Client.Connect);
     Wanwan.Bind("client-message", Wanwan.Client.Post);
     Wanwan.Bind("channel-change", function(channelName){
         Wanwan.Client.channelName = channelName;
@@ -145,10 +154,16 @@ Wanwan.Start = function(serverCGIURL) {
     Wanwan.Server.URL = serverCGIURL;
     Wanwan.Name("Potato");
     Wanwan.Channel("Lobby");
-    setInterval(Wanwan.Client.RequestUpdate, 8500);
-    Wanwan.Client.RequestUpdate();
-
     Wanwan.Bindings.Resolve("initialize");
+
+
+    // send initiale request 
+    var out = [];
+    out.push("WANWANSQRY");
+    out.push("" + 0); // version of the client.
+    var str = Wanwan.Server.Hexify(out);
+    Wanwan.Client.SendRequest(str, 'Post');
+
 }
 
 
@@ -222,6 +237,12 @@ Wanwan.Client = {}
 Wanwan.Client.index = 0;
 Wanwan.Client.UpdateRequest = null;
 
+Wanwan.Client.Connect = function() {
+    setInterval(Wanwan.Client.RequestUpdate, 8500);
+    Wanwan.Client.RequestUpdate();
+}
+
+
 // physically send the request to the server
 Wanwan.Client.SendRequest = function(str, type) {
     // basic rundown:
@@ -250,6 +271,8 @@ Wanwan.Client.SendRequest = function(str, type) {
                     Wanwan.Server.Messages.push(respArray[i]);
                 }
                 Wanwan.Server.Check();
+
+                if (!Wanwan.Server.initialized) return;
                 Wanwan.Client.RequestUpdate();
     
                 // put in messages and resolve messages
@@ -321,7 +344,7 @@ Wanwan.Client.RequestUpdate = function() {
 Wanwan.Server = {};
 Wanwan.Server.URL = "";
 Wanwan.Server.Messages = [];
-
+Wanwan.Server.initialized = false;
 
 
 
@@ -352,7 +375,22 @@ Wanwan.Server.Check = function() {
             Wanwan.Client.index = parseInt(packet[4]);
 
             break;
+
+          case "WANWANOKAY":
+            if (Wanwan.Server.initialized) continue; // Pretty fishy if you ask me
+            Wanwan.Server.initialized = true;
+            Wanwan.Bindings.Resolve("server-accept");
+            break;
+
+
+          case "WANWANDENY":
+            if (Wanwan.Server.initialized) continue; // also pretty fishy
+            console.log("Wanwan: Client version isn't supported.");
+            Wanwan.Bindings.Resolve("server-deny");
+            break;
+
           default:;
+
         }      
 
     }

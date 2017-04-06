@@ -13,6 +13,9 @@
 #include <stdio.h>
 
 
+#define WANWAN__SUPPORTED_CLIENT_VERSION 0
+
+
 char * wanwan_get_post_message();
 
 int main(int argc, char **argv) {
@@ -35,6 +38,25 @@ int main(int argc, char **argv) {
     switch(wanwan_client_get_request(client)) {
 
 
+    // The initial request makes sure that the client will be able to handle 
+    // reswponses from the server.
+      case wanwan_Request_ServerQuery: {
+        wanwan_String * temp = (wanwan_client_get_version(client) == 0) ?
+                wanwan_string_create("WANWANOKAY")
+              :
+                wanwan_string_create("WANWANDENY");
+
+        wanwan_String * out = wanwan_string_hexify(
+            &temp, 1
+        );    
+        wanwan_response_push_compiled_message(out);
+        wanwan_response_send();
+        wanwan_string_destroy(temp);
+        wanwan_string_destroy(out);
+        }
+        break;        
+
+    
     // request to post a message. they won't see it until their
     // next update
       case wanwan_Request_PostMessage:
