@@ -1,48 +1,50 @@
-/// Canvas-related functions and properties
-Wanwan.Canvas = {};
 
+
+
+/// Canvas-related functions and properties
+function WanwanCanvas(){}
 
 // The canvas element references that should be used to update 
 //
-Wanwan.Canvas.Element = null;
+WanwanCanvas.prototype.Element = null;
 
 
 // Sets the animation to use by default when showing a cnavas animation 
 //
-Wanwan.Canvas.DefaultAnimation = "Core.Speech";
+WanwanCanvas.prototype.DefaultAnimation = "speech";
 
 // Sets the font to use for the canvas text rendering
-Wanwan.Canvas.Font = "monospace";
+WanwanCanvas.prototype.Font = "monospace";
 
 // Sets the font size to use for all text on the canvas
-Wanwan.Canvas.FontSize = "13pt";
+WanwanCanvas.prototype.FontSize = "13pt";
 
 // Sets the scroll amoutn of the canvas
-Wanwan.Canvas.VerticalScroll = 0;
+WanwanCanvas.prototype.VerticalScroll = 0;
 
 // Sets the reserved space on the canvas for drawing usernames
-Wanwan.Canvas.ReservedSpaceForNames = 140;
+WanwanCanvas.prototype.ReservedSpaceForNames = 140;
 
 
 
 // Forces a full redraw of the canvas. This is usually only needed for resize events
 // of the canvas.
-Wanwan.Canvas.FullUpdate = function(){}
+WanwanCanvas.prototype.FullUpdate = function(){}
 
 // usually done for you, but maybe be needed for special situations
 // and external events. A "soft update" redraws the canvas' framebuffer.
 // This is far quicker than a full update 
-Wanwan.Canvas.SoftUpdate = function(){}
+WanwanCanvas.prototype.SoftUpdate = function(){}
 
 
 
 // Manually shows a message post on the canvas 
 // 
-Wanwan.Canvas.PostMessage = function(username, message, color){}
+WanwanCanvas.prototype.PostMessage = function(username, message, color){}
 
 
 // Clears all shown messages from the canvas.
-Wanwan.Canvas.ClearText = function(){}
+WanwanCanvas.prototype.ClearText = function(){}
 
 
 
@@ -57,13 +59,13 @@ Wanwan.Canvas.ClearText = function(){}
 
 
 
-Wanwan.Canvas.SoftUpdate = function() {
-    if (Wanwan.Canvas.Element == null) return;
-    Wanwan.Canvas.Update();
+WanwanCanvas.prototype.SoftUpdate = function() {
+    if (this.Element == null) return;
+    this.Update();
 }
 
-Wanwan.Canvas.FullUpdate = function() {
-    Wanwan.Canvas.UpdateFramebuffer();
+WanwanCanvas.prototype.FullUpdate = function() {
+    this.UpdateFramebuffer();
 }
 
 
@@ -74,45 +76,64 @@ Wanwan.Canvas.FullUpdate = function() {
 
 /////////////////// CANVAS///////////////////////
 
-Wanwan.Canvas.Text = [];
-Wanwan.Canvas.Animation = {};
-Wanwan.Canvas.Animation.Enter = [];
-Wanwan.Canvas.Properties = {};
-Wanwan.Canvas.Properties.wrapIndex = 1;
-Wanwan.Canvas.Properties.messagesToProcess = 0;
-Wanwan.Canvas.Offscreen = document.createElement('canvas');
-Wanwan.Canvas.yToText = [];
+function WanwanCanvas(ww) {
+    var ref = this;
+
+    ww.Bind("server-accept", function(channel) {
+        ref.ClearText();
+        return true;
+    });
 
 
-Wanwan.Canvas.ClearText = function() {
-    Wanwan.Canvas.Text = [];
-    Wanwan.Canvas.UpdateY(Wanwan.Canvas.Offscreen.getContext('2d'));
-    Wanwan.Client.index = 0;
+    ww.Bind("server-response", function() {
+        requestAnimationFrame(function(){
+            ref.UpdateFramebuffer();
+        });
+        return true;
+    });
+
+    ww.Bind("server-message", function(user, message, color, animationName){
+        ref.PostMessage(user, message, color);
+    });
+
+    this.Offscreen = document.createElement('canvas');
+    this.Properties = {};
+    this.Properties.wrapIndex = 1;
+    this.Properties.messagesToProcess = 0;
+    this.Text = [];
+    this.yToText = [];
 }
 
-// The default text enter animation. should return true when 
-// the animation is finished.
-Wanwan.Canvas.Animation.Enter["default"] = function(text, context) {    
-    return true;
+
+
+
+
+
+
+WanwanCanvas.prototype.ClearText = function() {
+    this.Text = [];
+    this.UpdateY(this.Offscreen.getContext('2d'));
+    this.index = 0;
 }
 
 
 
 
 
-Wanwan.Canvas.UpdateMessageMetrics = function(context, text, textIndex) {
-    var predecessor = textIndex == 0 ? null :  Wanwan.Canvas.Text[textIndex-1];
+
+WanwanCanvas.prototype.UpdateMessageMetrics = function(context, text, textIndex) {
+    var predecessor = textIndex == 0 ? null :  this.Text[textIndex-1];
     text.y              = predecessor ? predecessor.y + predecessor.contentWrapped.length : 0;
-    text.contentWrapped = Wanwan.Canvas.WrapSplitText(
+    text.contentWrapped = this.WrapSplitText(
         context, 
         text.content, 
-        Wanwan.Canvas.Offscreen.width - Wanwan.Canvas.ReservedSpaceForNames
+        this.Offscreen.width - this.ReservedSpaceForNames
     );
-    text.wrapIndex = Wanwan.Canvas.Properties.wrapIndex;
+    text.wrapIndex = this.Properties.wrapIndex;
     for(var n = 0; n < text.contentWrapped.length; ++n) {
-        Wanwan.Canvas.yToText.push(text);
+        this.yToText.push(text);
     }
-    Wanwan.Canvas.Properties.Span = text.y + text.contentWrapped.length;
+    this.Properties.Span = text.y + text.contentWrapped.length;
 }
 
 
@@ -120,50 +141,51 @@ Wanwan.Canvas.UpdateMessageMetrics = function(context, text, textIndex) {
 
 
 // adds additional text to the main canvas area
-Wanwan.Canvas.PostMessage = function(speaker, message, color) {
+WanwanCanvas.prototype.PostMessage = function(speaker, message, color) {
 
 
-    var anime = Wanwan.Canvas.DefaultAnimation;
+    var anime = this.DefaultAnimation;
     if (message.length >= 4 &&
         message[0] == '[' && 
         message[2] == ']') {
         switch(message[1]) {
-          case '~': anime = "Core.Wavey"; break;
-          case '!': anime = "Core.Shock"; break;
+          case '~': anime = "wavey"; break;
+          case '!': anime = "shock"; break;
         }
 
         message = message.substring(3, message.length);
     }
 
-    var context = Wanwan.Canvas.Offscreen.getContext('2d'); //Context;
+    var context = this.Offscreen.getContext('2d'); //Context;
 
     var text = {};
+    text.parent         = this;
     text.speaker        = speaker;
     text.content        = message;
     text.color          = color;
-    text.onEnter        = Wanwan.Canvas.Animation.Enter[anime];
+    text.onEnter        = WanwanCanvasAnimations[anime];
     text.enterFinished  = false;
     text.persist        = {};
 
 
 
     if (text.onEnter == null) 
-        text.onEnter = Wanwan.Canvas.Animation.Enter["default"];
+        text.onEnter = WanwanCanvasAnimations["default"];
     
-    var pushToEnd = (Wanwan.Canvas.VerticalScroll >= Wanwan.Canvas.Properties.Span - Wanwan.Canvas.ViewMessageCount)
+    var pushToEnd = (this.VerticalScroll >=this.Properties.Span - this.ViewMessageCount)
 
-    Wanwan.Canvas.Text.push(text);
+    this.Text.push(text);
     if (context) {
-        Wanwan.Canvas.UpdateMessageMetrics(
+        this.UpdateMessageMetrics(
             context,
             text,
-            Wanwan.Canvas.Text.length-1
+            this.Text.length-1
         );
     }
 
-    if (pushToEnd) Wanwan.Canvas.VerticalScroll+= text.contentWrapped ? text.contentWrapped.length : 1;
+    if (pushToEnd) this.VerticalScroll+= text.contentWrapped ? text.contentWrapped.length : 1;
 
-    Wanwan.Canvas.Properties.messagesToProcess++;
+    this.Properties.messagesToProcess++;
 
     return true;
 }
@@ -172,7 +194,7 @@ Wanwan.Canvas.PostMessage = function(speaker, message, color) {
 
 // returns an array of string lines where 
 // if drawn with the given context, no line exceeds wrapWidth
-Wanwan.Canvas.WrapSplitText = function(context, text, wrapWidth) {
+WanwanCanvas.prototype.WrapSplitText = function(context, text, wrapWidth) {
     var out = [];
     var line = "";
     for(var i = 0; i < text.length; ++i) {
@@ -186,23 +208,23 @@ Wanwan.Canvas.WrapSplitText = function(context, text, wrapWidth) {
     return out;
 }
 
-Wanwan.Canvas.UpdateY = function(context) {
-    context.font = "" + Wanwan.Canvas.FontSize + " " + Wanwan.Canvas.Font;;
+WanwanCanvas.prototype.UpdateY = function(context) {
+    context.font = "" + this.FontSize + " " + this.Font;;
     context.textAlign = "left";
-    Wanwan.Canvas.yToText = [];
+    this.yToText = [];
     
     var y = 0;
-    for(var i = 0; i < Wanwan.Canvas.Text.length; ++i) {    
-        Wanwan.Canvas.UpdateMessageMetrics(context, Wanwan.Canvas.Text[i], i);
+    for(var i = 0; i < this.Text.length; ++i) {    
+        this.UpdateMessageMetrics(context, this.Text[i], i);
     }
-    Wanwan.Canvas.Properties.Span = y;
+    this.Properties.Span = y;
 }
-Wanwan.Canvas.DrawView = function(context, viewBaseline, viewHeight) {
+WanwanCanvas.prototype.DrawView = function(context, viewBaseline, viewHeight) {
     // first, get text objects we need to draw
     var needsUpdate = false;
     var objs = [];
-    for(var y = viewBaseline; y < viewBaseline+viewHeight && y < Wanwan.Canvas.yToText.length; ++y) {
-        var text = Wanwan.Canvas.yToText[y];
+    for(var y = viewBaseline; y < viewBaseline+viewHeight && y < this.yToText.length; ++y) {
+        var text = this.yToText[y];
         if (!objs.length ||
             !(objs[objs.length-1] === text)) {
 
@@ -211,23 +233,23 @@ Wanwan.Canvas.DrawView = function(context, viewBaseline, viewHeight) {
         }
     }
 
-    if (Wanwan.Canvas.Properties.messagesToProcess > Wanwan.Canvas.ViewMessageCount) {
-        for(var y = 0; y < Wanwan.Canvas.Text.length; ++y)
-            Wanwan.Canvas.Text[y].enterFinished = true;
+    if (this.Properties.messagesToProcess > this.ViewMessageCount) {
+        for(var y = 0; y < this.Text.length; ++y)
+            this.Text[y].enterFinished = true;
     }
 
     for(var i = 0; i < objs.length; ++i) {
-        needsUpdate+=Wanwan.Canvas.DrawMessage(context, objs[i], viewBaseline);
+        needsUpdate+=this.DrawMessage(context, objs[i], viewBaseline);
     }
-    Wanwan.Canvas.Properties.messagesToProcess = 0;
+    this.Properties.messagesToProcess = 0;
     return needsUpdate!=0;
 }
 
 
-Wanwan.Canvas.DrawMessage = function(context, text, viewBaseline) {
+WanwanCanvas.prototype.DrawMessage = function(context, text, viewBaseline) {
     var needsUpdate = false;
     context.setTransform(1, 0, 0, 1, 0, 0);
-    context.translate(0, (-viewBaseline + text.y+1)*Wanwan.Canvas.Properties.FontHeight);
+    context.translate(0, (-viewBaseline + text.y+1)*this.Properties.FontHeight);
 
 
 
@@ -236,11 +258,11 @@ Wanwan.Canvas.DrawMessage = function(context, text, viewBaseline) {
     // clip the name area
     context.save();
     context.beginPath();
-    context.rect(0, -Wanwan.Canvas.Offscreen.height, Wanwan.Canvas.ReservedSpaceForNames, Wanwan.Canvas.Offscreen.height*2);
+    context.rect(0, -this.Offscreen.height, this.ReservedSpaceForNames, this.Offscreen.height*2);
     context.clip();
     context.fillText(text.speaker + ": ", 0, 0);
     context.restore();
-    context.translate(Wanwan.Canvas.ReservedSpaceForNames+6, 0);
+    context.translate(this.ReservedSpaceForNames+6, 0);
 
 
     // draw message content, preserving space for the wrapped text
@@ -248,7 +270,7 @@ Wanwan.Canvas.DrawMessage = function(context, text, viewBaseline) {
         text.enterFinished = text.onEnter(text, context)
         needsUpdate = true;
     } else {
-        text.enterFinished = Wanwan.Canvas.Animation.Enter["none"](text, context);
+        text.enterFinished = WanwanCanvasAnimations["none"](text, context);
     }
     return needsUpdate;
 }
@@ -258,28 +280,28 @@ Wanwan.Canvas.DrawMessage = function(context, text, viewBaseline) {
 
 // the main update look just draws all the strings we know
 // in the way they're requested to be drawn
-Wanwan.Canvas.UpdateFramebuffer = function() {
+WanwanCanvas.prototype.UpdateFramebuffer = function() {
 
 
     var needsUpdate = false;
-    var context = Wanwan.Canvas.Offscreen.getContext('2d'); //Context;
+    var context = this.Offscreen.getContext('2d'); //Context;
 
 
-    if (Wanwan.Canvas.Offscreen.height != Wanwan.Canvas.Element.height ||
-        Wanwan.Canvas.Offscreen.width != Wanwan.Canvas.Element.width ||
-        Wanwan.Canvas.Offscreen.Font != Wanwan.Canvas.Font ||
-        Wanwan.Canvas.Offscreen.FontSize != Wanwan.Canvas.FontSize) {
+    if (this.Offscreen.height != this.Element.height ||
+        this.Offscreen.width != this.Element.width ||
+        this.Offscreen.Font != this.Font ||
+        this.Offscreen.FontSize != this.FontSize) {
 
 
-        Wanwan.Canvas.Offscreen.height = Wanwan.Canvas.Element.height;
-        Wanwan.Canvas.Offscreen.width = Wanwan.Canvas.Element.width;
-        Wanwan.Canvas.Offscreen.Font = Wanwan.Canvas.Font;
-        Wanwan.Canvas.Offscreen.FontSize = Wanwan.Canvas.FontSize;
-        Wanwan.Canvas.Properties.FontHeight = Math.floor(parseInt(Wanwan.Canvas.FontSize)*1.5);
-        Wanwan.Canvas.Properties.FontWidth = context.measureText('M').width;
+        this.Offscreen.height = this.Element.height;
+        this.Offscreen.width = this.Element.width;
+        this.Offscreen.Font = this.Font;
+        this.Offscreen.FontSize = this.FontSize;
+        this.Properties.FontHeight = Math.floor(parseInt(this.FontSize)*1.5);
+        this.Properties.FontWidth = context.measureText('M').width;
 
-        Wanwan.Canvas.UpdateY(context);
-        Wanwan.Canvas.ViewMessageCount = Math.floor(Wanwan.Canvas.Offscreen.height / (parseInt(Wanwan.Canvas.FontSize)*1.5))-1;
+        this.UpdateY(context);
+        this.ViewMessageCount = Math.floor(this.Offscreen.height / (parseInt(this.FontSize)*1.5))-1;
 
     }
 
@@ -293,41 +315,44 @@ Wanwan.Canvas.UpdateFramebuffer = function() {
 
 
     // clip scroll amount
-    if (Wanwan.Canvas.VerticalScroll > Wanwan.Canvas.Properties.Span - Wanwan.Canvas.ViewMessageCount) {
-        Wanwan.Canvas.VerticalScroll = Wanwan.Canvas.Properties.Span - Wanwan.Canvas.ViewMessageCount;
+    if (this.VerticalScroll > this.Properties.Span - this.ViewMessageCount) {
+        this.VerticalScroll = this.Properties.Span - this.ViewMessageCount;
     }
-    if (Wanwan.Canvas.VerticalScroll < 0)
-        Wanwan.Canvas.VerticalScroll = 0;
+    if (this.VerticalScroll < 0)
+        this.VerticalScroll = 0;
 
 
 
-    context.clearRect(0, 0, Wanwan.Canvas.Offscreen.width, Wanwan.Canvas.Offscreen.height);
-    needsUpdate = Wanwan.Canvas.DrawView(
+    context.clearRect(0, 0, this.Offscreen.width, this.Offscreen.height);
+    needsUpdate = this.DrawView(
         context, 
-        Wanwan.Canvas.VerticalScroll,
-        Wanwan.Canvas.ViewMessageCount 
+        this.VerticalScroll,
+        this.ViewMessageCount 
     );
 
 
 
 
-    if (needsUpdate && Wanwan.Canvas.UpdateID == null) {
-        Wanwan.Canvas.UpdateID = setTimeout(function(){
-            requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
-            Wanwan.Canvas.UpdateID = null;
+    if (needsUpdate && this.UpdateID == null) {
+        var ref = this;
+        this.UpdateID = setTimeout(function(){
+            requestAnimationFrame(function(){
+                ref.UpdateFramebuffer();
+            });
+            ref.UpdateID = null;
         }, 15);
     }
     
-    Wanwan.Canvas.Update();
+    this.Update();
 }
 
 
-Wanwan.Canvas.Update = function() {
-    Wanwan.Canvas.Context = Wanwan.Canvas.Element.getContext("2d");
-    Wanwan.Canvas.Context.clearRect(0, 0, Wanwan.Canvas.Element.width, Wanwan.Canvas.Element.height);
-    Wanwan.Canvas.Context.drawImage(Wanwan.Canvas.Offscreen, 
-        0, 0, Wanwan.Canvas.Offscreen.width, Wanwan.Canvas.Offscreen.height, 
-        0, 0, Wanwan.Canvas.Element.width, Wanwan.Canvas.Element.height);
+WanwanCanvas.prototype.Update = function() {
+    this.Context = this.Element.getContext("2d");
+    this.Context.clearRect(0, 0, this.Element.width, this.Element.height);
+    this.Context.drawImage(this.Offscreen, 
+        0, 0, this.Offscreen.width, this.Offscreen.height, 
+        0, 0, this.Element.width, this.Element.height);
 }
 
 
@@ -355,9 +380,17 @@ Wanwan.Canvas.Update = function() {
 //// Some built-in active animations
 
 
+// The default text enter animation. should return true when 
+// the animation is finished.
+WanwanCanvasAnimations = {};
+WanwanCanvasAnimations["default"] = function(text, context) {    
+    return true;
+}
+
+
 
 // Applies a sinasoid to the text
-Wanwan.Canvas.Animation.Enter["Core.Wavey"] = function(text, context) {
+WanwanCanvasAnimations["wavey"] = function(text, context) {
     if (text.persist.counter == null) {
         text.persist.counter = 0;
         text.persist.factor = 1.0;
@@ -390,11 +423,11 @@ Wanwan.Canvas.Animation.Enter["Core.Wavey"] = function(text, context) {
     return text.persist.factor < 0.006;
 }
 
-Wanwan.Canvas.Animation.Enter["none"] = function(text, context) {
+WanwanCanvasAnimations["none"] = function(text, context) {
     context.fillColor = text.color;
     for(var i = 0; i < text.contentWrapped.length; ++i) {
         context.fillText(text.contentWrapped[i], 0, 0);
-        context.translate(0, Wanwan.Canvas.Properties.FontHeight);
+        context.translate(0, text.parent.Properties.FontHeight);
     }
     return true;
 }
@@ -404,7 +437,7 @@ Wanwan.Canvas.Animation.Enter["none"] = function(text, context) {
 
 // emulates live speech by showing one character at a time and waiting
 // longer on punctuation characters... "OPEN YOUR EYES" style
-Wanwan.Canvas.Animation.Enter["Core.Speech"] = function(text, context) {
+WanwanCanvasAnimations["speech"] = function(text, context) {
     if (text.persist.index == null) {
         text.persist.index = 0;
         text.persist.wait = 0;
@@ -422,12 +455,12 @@ Wanwan.Canvas.Animation.Enter["Core.Speech"] = function(text, context) {
             context.fillColor = text.color;
             context.fillText(text.contentWrapped[i], 0, 0);
             usedIndex -= text.contentWrapped[i].length;
-            context.translate(0, Wanwan.Canvas.Properties.FontHeight);
+            context.translate(0, text.parent.Properties.FontHeight);
 
         } else {
             context.fillColor = text.color;
             context.fillText(text.contentWrapped[i].substring(0, usedIndex) + "\u25A1", 0, 0);
-            context.translate(0, Wanwan.Canvas.Properties.FontHeight);
+            context.translate(0, text.parent.Properties.FontHeight);
             break;
         }
     }
@@ -454,7 +487,7 @@ Wanwan.Canvas.Animation.Enter["Core.Speech"] = function(text, context) {
 
 
 
-Wanwan.Canvas.Animation.Enter["Core.Shock"] = function(text, context) {
+WanwanCanvasAnimations["shock"] = function(text, context) {
     if (text.persist.factor == null) {
         text.persist.factor = 1.0;
         text.persist.locTable = [];
@@ -489,22 +522,6 @@ Wanwan.Canvas.Animation.Enter["Core.Shock"] = function(text, context) {
 
 
 
-
-
-
-
-Wanwan.Bind("server-accept", function(channel) {
-    Wanwan.Canvas.ClearText();
-    return true;
-});
-
-
-Wanwan.Bind("server-response", function() {
-    requestAnimationFrame(Wanwan.Canvas.UpdateFramebuffer);
-    return true;
-});
-
-Wanwan.Bind("server-message", Wanwan.Canvas.PostMessage);
 
 
 

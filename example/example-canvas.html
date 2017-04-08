@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=.5">
 
-<body onresize="Wanwan.Canvas.FullUpdate();"
+<body onresize="canvas.FullUpdate();"
       style="background-color: #555 ;color: #CCC;">
     <div>
     <canvas id="canvas" width="400" height="400" style="background-color:rgb(64, 64, 64);" onresize="manager.onresize()"></canvas>
@@ -42,36 +42,37 @@
     <script>
 
         // In this example, let's jus 
-        var canvas = document.getElementById("canvas"); 
-        canvas.width  = window.innerWidth;
-        canvas.height = (window.innerHeight - 70);
+        var canvasElement = document.getElementById("canvas"); 
+        canvasElement.width  = window.innerWidth;
+        canvasElement.height = (window.innerHeight - 70);
 
         // Lets setup some initial attributes of the canvas
-        Wanwan.Canvas.Font      = "monospace";
-        Wanwan.Canvas.FontSize  = "12pt";
-        Wanwan.Canvas.Element   = canvas;
+        canvas = new WanwanCanvas(Wanwan);
+        canvas.Font      = "monospace";
+        canvas.FontSize  = "12pt";
+        canvas.Element   = canvasElement;
 
         Wanwan.Bind("server-deny",
             function(){
-                Wanwan.Canvas.PostMessage("*", "This client is unsupported for the given server.", "rgb(255, 0, 0)");
+                canvas.PostMessage("*", "This client is unsupported for the given server.", "rgb(255, 0, 0)");
             }
         );
 
 
         // add wheel control if available
-        canvas.addEventListener("wheel", function(event) {
-            if (event.deltaY > 0) Wanwan.Canvas.VerticalScroll++;
-            if (event.deltaY < 0) Wanwan.Canvas.VerticalScroll--;
-            Wanwan.Canvas.FullUpdate();
+        canvasElement.addEventListener("wheel", function(event) {
+            if (event.deltaY > 0) canvas.VerticalScroll++;
+            if (event.deltaY < 0) canvas.VerticalScroll--;
+            canvas.FullUpdate();
             return false;
         }, false);
 
-        Wanwan.Canvas.PostMessage("*", "Welcome to the Wanwan chat demo!", "rgb(0, 255, 255)");
-        Wanwan.Canvas.PostMessage("*", "Please note that this is a live demo and that anyone can join as anyone else.", "rgb(0, 255, 255)");
-        Wanwan.Canvas.PostMessage("*", "As such, by joining this, you agree to and acknowledge that the developers of Wanwan are not liable for any effects from the user content of this chat program.", "rgb(0, 255, 255)");
-        Wanwan.Canvas.PostMessage("*", "You also must be above 18 years of age to use this.", "rgb(0, 255, 255)");
-        Wanwan.Canvas.PostMessage("*", " ", "rgb(0, 255, 255)");
-        Wanwan.Canvas.PostMessage("*", "Continue?", "rgb(0, 255, 255)");
+        canvas.PostMessage("*", "Welcome to the Wanwan chat demo!", "rgb(0, 255, 255)");
+        canvas.PostMessage("*", "Please note that this is a live demo and that anyone can join as anyone else.", "rgb(0, 255, 255)");
+        canvas.PostMessage("*", "As such, by joining this, you agree to and acknowledge that the developers of Wanwan are not liable for any effects from the user content of this chat program.", "rgb(0, 255, 255)");
+        canvas.PostMessage("*", "You also must be above 18 years of age to use this.", "rgb(0, 255, 255)");
+        canvas.PostMessage("*", " ", "rgb(0, 255, 255)");
+        canvas.PostMessage("*", "Continue?", "rgb(0, 255, 255)");
 
 
         Ask(onresponse=function(response){
@@ -81,11 +82,11 @@
                 response == "continue") {
                 Wanwan.Start("http://127.0.0.1/bin/core.wanwan");
             } else {
-                Wanwan.Canvas.PostMessage("*", "Ok...", "rgb(0, 255, 255);");
+                canvas.PostMessage("*", "Ok...", "rgb(0, 255, 255);");
             }
         });
 
-        Wanwan.Canvas.FullUpdate();
+        canvas.FullUpdate();
 
 
     </script>

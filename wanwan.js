@@ -68,7 +68,7 @@ Wanwan.Send = function(messageText){}
 //          Called in the case that, when first attempting to connect, the server 
 //          identifies the client as incompatible. Usually this is a versioning issue.
 //
-//      "server-message"    function(user, message, color, animationName)
+//      "server-message"    function(user, message, color)
 //
 //          Called when the server sends over a broadcasted message that 
 //          the client hasn't seen yet.
