@@ -6,24 +6,24 @@ function WanwanCanvas(){}
 
 // The canvas element references that should be used to update 
 //
-WanwanCanvas.prototype.Element = null;
+WanwanCanvas.prototype.element = null;
 
 
 // Sets the animation to use by default when showing a cnavas animation 
 //
-WanwanCanvas.prototype.DefaultAnimation = "speech";
+WanwanCanvas.prototype.defaultAnimation = "speech";
 
 // Sets the font to use for the canvas text rendering
-WanwanCanvas.prototype.Font = "monospace";
+WanwanCanvas.prototype.font = "monospace";
 
 // Sets the font size to use for all text on the canvas
-WanwanCanvas.prototype.FontSize = "13pt";
+WanwanCanvas.prototype.fontSize = "13pt";
 
 // Sets the scroll amoutn of the canvas
-WanwanCanvas.prototype.VerticalScroll = 0;
+WanwanCanvas.prototype.verticalScroll = 0;
 
 // Sets the reserved space on the canvas for drawing usernames
-WanwanCanvas.prototype.ReservedSpaceForNames = 140;
+WanwanCanvas.prototype.reservedSpaceForNames = 140;
 
 
 
@@ -60,7 +60,7 @@ WanwanCanvas.prototype.ClearText = function(){}
 
 
 WanwanCanvas.prototype.SoftUpdate = function() {
-    if (this.Element == null) return;
+    if (this.element == null) return;
     this.Update();
 }
 
@@ -126,7 +126,7 @@ WanwanCanvas.prototype.UpdateMessageMetrics = function(context, text, textIndex)
     text.contentWrapped = this.WrapSplitText(
         context, 
         text.content, 
-        this.Offscreen.width - this.ReservedSpaceForNames
+        this.Offscreen.width - this.reservedSpaceForNames
     );
     text.wrapIndex = this.Properties.wrapIndex;
     for(var n = 0; n < text.contentWrapped.length; ++n) {
@@ -143,7 +143,7 @@ WanwanCanvas.prototype.UpdateMessageMetrics = function(context, text, textIndex)
 WanwanCanvas.prototype.PostMessage = function(speaker, message, color) {
 
 
-    var anime = this.DefaultAnimation;
+    var anime = this.defaultAnimation;
     if (message.length >= 4 &&
         message[0] == '[' && 
         message[2] == ']') {
@@ -171,7 +171,7 @@ WanwanCanvas.prototype.PostMessage = function(speaker, message, color) {
     if (text.onEnter == null) 
         text.onEnter = WanwanCanvasAnimations["default"];
     
-    var pushToEnd = (this.VerticalScroll >=this.Properties.Span - this.ViewMessageCount)
+    var pushToEnd = (this.verticalScroll >=this.Properties.Span - this.ViewMessageCount)
 
     this.Text.push(text);
     if (context) {
@@ -182,7 +182,7 @@ WanwanCanvas.prototype.PostMessage = function(speaker, message, color) {
         );
     }
 
-    if (pushToEnd) this.VerticalScroll+= text.contentWrapped ? text.contentWrapped.length : 1;
+    if (pushToEnd) this.verticalScroll+= text.contentWrapped ? text.contentWrapped.length : 1;
 
     this.Properties.messagesToProcess++;
 
@@ -208,7 +208,7 @@ WanwanCanvas.prototype.WrapSplitText = function(context, text, wrapWidth) {
 }
 
 WanwanCanvas.prototype.UpdateY = function(context) {
-    context.font = "" + this.FontSize + " " + this.Font;;
+    context.font = "" + this.fontSize + " " + this.font;;
     context.textAlign = "left";
     this.yToText = [];
     
@@ -248,7 +248,7 @@ WanwanCanvas.prototype.DrawView = function(context, viewBaseline, viewHeight) {
 WanwanCanvas.prototype.DrawMessage = function(context, text, viewBaseline) {
     var needsUpdate = false;
     context.setTransform(1, 0, 0, 1, 0, 0);
-    context.translate(0, (-viewBaseline + text.y+1)*this.Properties.FontHeight);
+    context.translate(0, (-viewBaseline + text.y+1)*this.Properties.fontHeight);
 
 
 
@@ -257,11 +257,11 @@ WanwanCanvas.prototype.DrawMessage = function(context, text, viewBaseline) {
     // clip the name area
     context.save();
     context.beginPath();
-    context.rect(0, -this.Offscreen.height, this.ReservedSpaceForNames, this.Offscreen.height*2);
+    context.rect(0, -this.Offscreen.height, this.reservedSpaceForNames, this.Offscreen.height*2);
     context.clip();
     context.fillText(text.speaker + ": ", 0, 0);
     context.restore();
-    context.translate(this.ReservedSpaceForNames+6, 0);
+    context.translate(this.reservedSpaceForNames+6, 0);
 
 
     // draw message content, preserving space for the wrapped text
@@ -286,21 +286,21 @@ WanwanCanvas.prototype.UpdateFramebuffer = function() {
     var context = this.Offscreen.getContext('2d'); //Context;
 
 
-    if (this.Offscreen.height != this.Element.height ||
-        this.Offscreen.width != this.Element.width ||
-        this.Offscreen.Font != this.Font ||
-        this.Offscreen.FontSize != this.FontSize) {
+    if (this.Offscreen.height != this.element.height ||
+        this.Offscreen.width != this.element.width ||
+        this.Offscreen.font != this.font ||
+        this.Offscreen.fontSize != this.fontSize) {
 
 
-        this.Offscreen.height = this.Element.height;
-        this.Offscreen.width = this.Element.width;
-        this.Offscreen.Font = this.Font;
-        this.Offscreen.FontSize = this.FontSize;
-        this.Properties.FontHeight = Math.floor(parseInt(this.FontSize)*1.5);
-        this.Properties.FontWidth = context.measureText('M').width;
+        this.Offscreen.height = this.element.height;
+        this.Offscreen.width = this.element.width;
+        this.Offscreen.font = this.font;
+        this.Offscreen.fontSize = this.fontSize;
+        this.Properties.fontHeight = Math.floor(parseInt(this.fontSize)*1.5);
+        this.Properties.fontWidth = context.measureText('M').width;
 
         this.UpdateY(context);
-        this.ViewMessageCount = Math.floor(this.Offscreen.height / (parseInt(this.FontSize)*1.5))-1;
+        this.ViewMessageCount = Math.floor(this.Offscreen.height / (parseInt(this.fontSize)*1.5))-1;
 
     }
 
@@ -314,18 +314,18 @@ WanwanCanvas.prototype.UpdateFramebuffer = function() {
 
 
     // clip scroll amount
-    if (this.VerticalScroll > this.Properties.Span - this.ViewMessageCount) {
-        this.VerticalScroll = this.Properties.Span - this.ViewMessageCount;
+    if (this.verticalScroll > this.Properties.Span - this.ViewMessageCount) {
+        this.verticalScroll = this.Properties.Span - this.ViewMessageCount;
     }
-    if (this.VerticalScroll < 0)
-        this.VerticalScroll = 0;
+    if (this.verticalScroll < 0)
+        this.verticalScroll = 0;
 
 
 
     context.clearRect(0, 0, this.Offscreen.width, this.Offscreen.height);
     needsUpdate = this.DrawView(
         context, 
-        this.VerticalScroll,
+        this.verticalScroll,
         this.ViewMessageCount 
     );
 
@@ -347,11 +347,11 @@ WanwanCanvas.prototype.UpdateFramebuffer = function() {
 
 
 WanwanCanvas.prototype.Update = function() {
-    this.Context = this.Element.getContext("2d");
-    this.Context.clearRect(0, 0, this.Element.width, this.Element.height);
+    this.Context = this.element.getContext("2d");
+    this.Context.clearRect(0, 0, this.element.width, this.element.height);
     this.Context.drawImage(this.Offscreen, 
         0, 0, this.Offscreen.width, this.Offscreen.height, 
-        0, 0, this.Element.width, this.Element.height);
+        0, 0, this.element.width, this.element.height);
 }
 
 
@@ -426,7 +426,7 @@ WanwanCanvasAnimations["none"] = function(text, context) {
     context.fillColor = text.color;
     for(var i = 0; i < text.contentWrapped.length; ++i) {
         context.fillText(text.contentWrapped[i], 0, 0);
-        context.translate(0, text.parent.Properties.FontHeight);
+        context.translate(0, text.parent.Properties.fontHeight);
     }
     return true;
 }
@@ -454,12 +454,12 @@ WanwanCanvasAnimations["speech"] = function(text, context) {
             context.fillColor = text.color;
             context.fillText(text.contentWrapped[i], 0, 0);
             usedIndex -= text.contentWrapped[i].length;
-            context.translate(0, text.parent.Properties.FontHeight);
+            context.translate(0, text.parent.Properties.fontHeight);
 
         } else {
             context.fillColor = text.color;
             context.fillText(text.contentWrapped[i].substring(0, usedIndex) + "\u25A1", 0, 0);
-            context.translate(0, text.parent.Properties.FontHeight);
+            context.translate(0, text.parent.Properties.fontHeight);
             break;
         }
     }

@@ -40,18 +40,19 @@
 
     <!-- Management setup.t -->
     <script>
-        var wanwanClient = new Wanwan("http://127.0.0.1/bin/core.wanwan");
+        var wanwanClient = new Wanwan("http://192.168.10.248/bin/core.wanwan");
 
         // In this example, let's jus 
         var canvasElement = document.getElementById("canvas"); 
         canvasElement.width  = window.innerWidth;
         canvasElement.height = (window.innerHeight - 70);
 
+
         // Lets setup some initial attributes of the canvas
         canvas = new WanwanCanvas(wanwanClient);
-        canvas.Font      = "monospace";
-        canvas.FontSize  = "12pt";
-        canvas.Element   = canvasElement;
+        canvas.font      = "monospace";
+        canvas.fontSize  = "12pt";
+        canvas.element   = canvasElement;
 
         wanwanClient.Bind("server-deny",
             function(){
@@ -62,8 +63,8 @@
 
         // add wheel control if available
         canvasElement.addEventListener("wheel", function(event) {
-            if (event.deltaY > 0) canvas.VerticalScroll++;
-            if (event.deltaY < 0) canvas.VerticalScroll--;
+            if (event.deltaY > 0) canvas.verticalScroll++;
+            if (event.deltaY < 0) canvas.verticalScroll--;
             canvas.FullUpdate();
             return false;
         }, false);

@@ -142,62 +142,99 @@ Wanwan.prototype.QueryAvailableChannels = function(responseFunc){}
 
 
 function Wanwan(serverCGIURL) {
-    this.Server.URL = serverCGIURL;
+    this.signal = new WanwanRelay();
+    this.client = new WanwanClient(serverCGIURL);
+
+    var ref = this;
+
+
+    // set up signals
+    this.client.onWANWANMSG = function(user, message, color) {
+        ref.signal.Resolve("server-message", [user, message, color]);
+    };
+
+    this.client.onWANWANOKAY = function() {
+        ref.signal.Resolve("server-accept");
+    };
+
+    this.client.onWANWANDENY = function() {
+        ref.signal.Resolve("server-deny");
+    }
+
+    this.client.onServerResponse = function() {
+        ref.signal.Resolve("server-response");
+    }
 }
 
 Wanwan.prototype.Start = function() {
 
     var ref = this;
 
-    ref.Bind("server-accept", function(){
-        ref.ConnectClient();
-        return true;
-    });
+
+
+
 
     ref.Bind("client-message", function(message){
-        ref.ClientPost(message);
+        ref.client.Post(message);
         return true;
     });
 
     ref.Bind("channel-change", function(channelName){
-        ref.Client.channelName = channelName;
+        ref.client.channelName = channelName;
         return true;
     });
 
 
     ref.Name("Potato");
     ref.Channel("Lobby");
-    ref.Bindings.Resolve("initialize");
-
-
-    // send initiale request 
-    var out = [];
-    out.push("WANWANSQRY");
-    out.push("" + 0); // version of the client.
-    var str = ref.Hexify(out);
-    ref.SendClientRequest(str, 'Post');
-
+    ref.signal.Resolve("initialize");
+    ref.client.Connect();
 }
 
 
 Wanwan.prototype.Name  = function(realName) {
-    this.Client.userName = realName;
+    this.client.userName = realName;
 }
 Wanwan.prototype.Channel = function(channelName) {
-    this.Bindings.Resolve("channel-change", [channelName]);
+    this.signal.Resolve("channel-change", [channelName]);
 }
 
 Wanwan.prototype.Send = function(message) {
-    this.Bindings.Resolve("client-message", [message]);
+    this.signal.Resolve("client-message", [message]);
 }
 
 
 Wanwan.prototype.Bind = function(signalName, handler) {
+    return this.signal.Bind(signalName, handler)
+}
+
+
+Wanwan.prototype.Unbind = function(bindID) {
+    this.signal.Unbind(bindID);
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////
+//// WanwanRelay  - Event binding controller
+
+function WanwanRelay() {
+    this.signals = {};
+}
+
+
+WanwanRelay.prototype.Bind = function(signalName, handler) {
     var bindID = {};
-    var bindList = this.Bindings[signalName];
+    var bindList = this.signals[signalName];
     if (bindList == null) {
-        this.Bindings[signalName] = [];
-        var bindList = this.Bindings[signalName];
+        this.signals[signalName] = [];
+        var bindList = this.signals[signalName];
     }
 
     bindID.signal = signalName;
@@ -209,12 +246,11 @@ Wanwan.prototype.Bind = function(signalName, handler) {
     bindList.reverse();
 
     return bindID;
-}
+}   
 
-
-Wanwan.prototype.Unbind = function(bindID) {
+WanwanRelay.prototype.Unbind = function(bindID) {
     if (bindID == null) return;
-    var bindList = this.Bindings[bindID.signal];
+    var bindList = this.signals[bindID.signal];
     if (!bindList) return;
     
     for(var i = 0; i < bindList.length; ++i) {
@@ -223,13 +259,8 @@ Wanwan.prototype.Unbind = function(bindID) {
     }
 }
 
-
-
-// bindings control signals
-Wanwan.prototype.Bindings = {};
-
-Wanwan.prototype.Bindings.Resolve = function(signal, args) {
-    var bindings = this[signal];
+WanwanRelay.prototype.Resolve = function(signal, args) {
+    var bindings = this.signals[signal];
     if (bindings == null) return; // throw error ideally
     if (!bindings.length) return;
 
@@ -241,210 +272,68 @@ Wanwan.prototype.Bindings.Resolve = function(signal, args) {
 
 
 
-///////////// CLIENT /////////////////
-
-Wanwan.prototype.Client = {}
 
 
 
-Wanwan.prototype.Client.index = 0;
-Wanwan.prototype.Client.UpdateRequest = null;
-
-Wanwan.prototype.ConnectClient = function() {
-    var ref = this;
-    setInterval(function(){
-        ref.RequestClientUpdate();
-    }, 8500);
-    ref.RequestClientUpdate();
-}
 
 
-// physically send the request to the server
-Wanwan.prototype.SendClientRequest = function(str, type) {
-    // basic rundown:
-    // Request JS to run from the WANWAN server
-    // eventually this will populate a single string buffer of hex 
-    // to be encoded / decoded in a correct format.
-    // We should always have an update request active
-    // that the server is serving.
 
-    // posts cancel Updates
-    if (type == 'Update' && this.Client.UpdateRequest) {
-        this.Client.UpdateRequest.abort();
-    }
+///////////////////////
+///// WanwanIO Data encoder/decoder object
+////
+//// Used to convert arbitrary text (and potentially binary) data 
+//// to and from ascii. 
+function WanwanIO() {
+    this.fromHex = [];
+    for(var i = 0; i < 103; ++i) this.fromHex.push(0);
+    this.fromHex[48] = 0;
+    this.fromHex[49] = 1;
+    this.fromHex[50] = 2;
+    this.fromHex[51] = 3;
+    this.fromHex[52] = 4;
+    this.fromHex[53] = 5;
+    this.fromHex[54] = 6;
+    this.fromHex[55] = 7;
+    this.fromHex[56] = 8;
+    this.fromHex[57] = 9;
 
-    var ref = this;
-    
+    this.fromHex[97] = 10;
+    this.fromHex[98] = 11;
+    this.fromHex[99] = 12;
+    this.fromHex[100] = 13;
+    this.fromHex[101] = 14;
+    this.fromHex[102] = 15;
 
+    this.toHex = [];
+    this.toHex[0] = "0";
+    this.toHex[1] = "1";
+    this.toHex[2] = "2";
+    this.toHex[3] = "3";
+    this.toHex[4] = "4";
+    this.toHex[5] = "5";
+    this.toHex[6] = "6";
+    this.toHex[7] = "7";
+    this.toHex[8] = "8";
+    this.toHex[9] = "9";
 
-    var req = new XMLHttpRequest();
-    req.open('POST', this.Server.URL+"?", true);
-    req.onreadystatechange = function() {
-        if (req.readyState == 4) {
-            if (req.status == 200) {
-                
-                var respArray = req.responseText.split("\n");
-                for(var i = 0; i < respArray.length; ++i) {
-                    ref.Server.Messages.push(respArray[i]);
-                }
-                ref.CheckServer();
-
-                if (!ref.Server.initialized) return;
-                ref.RequestClientUpdate();
-    
-                // put in messages and resolve messages
-            }
-
-            if (req == ref.Client.UpdateRequest)
-                ref.Client.UpdateRequest = null;
-
-            
-        }
-    }
-    req.send(str.length.toString() + "&" + str);
-
-    if (type == 'Update') {
-        ref.Client.UpdateRequest = req;
-    }
+    this.toHex[10] = "a";
+    this.toHex[11] = "b";
+    this.toHex[12] = "c";
+    this.toHex[13] = "d";
+    this.toHex[14] = "e";
+    this.toHex[15] = "f";
 
 }
 
 
 
 
-// posts a new message to the server
-// (the client wont show those changes until acknowledged from the server
-Wanwan.prototype.ClientPost = function(message) {
 
-    
-
-
-    
-    // form basic message
-    var out = [];
-    out.push("WANWANPOST");
-    out.push(this.Client.userName);
-    out.push(encodeURIComponent(message));
-    out.push(this.Client.channelName);
-
-
-    var str = this.Hexify(out);
-    this.SendClientRequest(str, 'Post');
-
-    clearTimeout(this.Server.NeedsUpdateID);
-    this.Server.NeedsUpdateID = null;
-
-    return true;
-    
+WanwanIO.prototype.HexToUint8 = function(string) {
+    return this.fromHex[string.charCodeAt(0)]*16 +
+           this.fromHex[string.charCodeAt(1)];
 }
-
-
-
-Wanwan.prototype.RequestClientUpdate = function() {
-    var out = [];
-    out.push("WANWANUPDT");
-    out.push(this.Client.channelName);
-    out.push(this.Client.index.toString());
- 
-    var str = this.Hexify(out);
-    this.SendClientRequest(str, 'Update');   
-
-}
-
-
-
-
-///////////////////// SERVER ///////////////////
-
-
-Wanwan.prototype.Server = {};
-Wanwan.prototype.Server.URL = "";
-Wanwan.prototype.Server.Messages = [];
-Wanwan.prototype.Server.initialized = false;
-
-
-
-
-
-
-Wanwan.prototype.CheckServer = function() {
-
-
-    if (!this.Server.Messages.length) return;
-    for(var i = 0; i < this.Server.Messages.length; ++i) {
-        if (this.Server.Messages[i].length == 0) continue;
-        //console.log("From the server: " + Wanwan.Server.Messages[i]);
-        var packet = this.Dehexify(this.Server.Messages[i]);
-
-        switch(packet[0]) {
-
-          case "WANWANMSG":
-            if (packet.length != 5) continue;
-            if (this.Client.index >= parseInt(packet[4])) continue;
-            this.Bindings.Resolve("server-message", 
-                [
-                    packet[1],  // user
-                    decodeURIComponent(packet[2]),  // message
-                    packet[3]  // color
-                ]
-            );
-            this.Client.index = parseInt(packet[4]);
-
-            break;
-
-          case "WANWANOKAY":
-            if (this.Server.initialized) continue; // Pretty fishy if you ask me
-            this.Server.initialized = true;
-            this.Bindings.Resolve("server-accept");
-            break;
-
-
-          case "WANWANDENY":
-            if (this.Server.initialized) continue; // also pretty fishy
-            console.log("Wanwan: Client version isn't supported.");
-            this.Bindings.Resolve("server-deny");
-            break;
-
-          default:;
-
-        }      
-
-    }
-    this.Bindings.Resolve("server-response");
-    this.Server.Messages = [];
-};
-
-
-
-
-
-Wanwan.prototype.HexLookup = [];
-for(var i = 0; i < 103; ++i) Wanwan.prototype.HexLookup.push(0);
-Wanwan.prototype.HexLookup[48] = 0;
-Wanwan.prototype.HexLookup[49] = 1;
-Wanwan.prototype.HexLookup[50] = 2;
-Wanwan.prototype.HexLookup[51] = 3;
-Wanwan.prototype.HexLookup[52] = 4;
-Wanwan.prototype.HexLookup[53] = 5;
-Wanwan.prototype.HexLookup[54] = 6;
-Wanwan.prototype.HexLookup[55] = 7;
-Wanwan.prototype.HexLookup[56] = 8;
-Wanwan.prototype.HexLookup[57] = 9;
-
-Wanwan.prototype.HexLookup[97] = 10;
-Wanwan.prototype.HexLookup[98] = 11;
-Wanwan.prototype.HexLookup[99] = 12;
-Wanwan.prototype.HexLookup[100] = 13;
-Wanwan.prototype.HexLookup[101] = 14;
-Wanwan.prototype.HexLookup[102] = 15;
-
-
-
-Wanwan.prototype.HexToUint8 = function(string) {
-    return this.HexLookup[string.charCodeAt(0)]*16 +
-           this.HexLookup[string.charCodeAt(1)];
-}
-Wanwan.prototype.Dehexify = function(string) {
+WanwanIO.prototype.Dehexify = function(string) {
     
     var out = [];
     var item;
@@ -475,32 +364,15 @@ Wanwan.prototype.Dehexify = function(string) {
 }
 
 
-Wanwan.prototype.ReverseHexLookup = [];
-Wanwan.prototype.ReverseHexLookup[0] = "0";
-Wanwan.prototype.ReverseHexLookup[1] = "1";
-Wanwan.prototype.ReverseHexLookup[2] = "2";
-Wanwan.prototype.ReverseHexLookup[3] = "3";
-Wanwan.prototype.ReverseHexLookup[4] = "4";
-Wanwan.prototype.ReverseHexLookup[5] = "5";
-Wanwan.prototype.ReverseHexLookup[6] = "6";
-Wanwan.prototype.ReverseHexLookup[7] = "7";
-Wanwan.prototype.ReverseHexLookup[8] = "8";
-Wanwan.prototype.ReverseHexLookup[9] = "9";
 
-Wanwan.prototype.ReverseHexLookup[10] = "a";
-Wanwan.prototype.ReverseHexLookup[11] = "b";
-Wanwan.prototype.ReverseHexLookup[12] = "c";
-Wanwan.prototype.ReverseHexLookup[13] = "d";
-Wanwan.prototype.ReverseHexLookup[14] = "e";
-Wanwan.prototype.ReverseHexLookup[15] = "f";
 
-Wanwan.prototype.Uint8ToHex = function(value) {
+WanwanIO.prototype.Uint8ToHex = function(value) {
     if (value > 255) value = 255;
-    return this.ReverseHexLookup[Math.floor(value/16)] +
-           this.ReverseHexLookup[value%16];
+    return this.toHex[Math.floor(value/16)] +
+           this.toHex[value%16];
 }
 
-Wanwan.prototype.Hexify = function(argvec) {
+WanwanIO.prototype.Hexify = function(argvec) {
     var str = "";
     for(var i = 0; i < argvec.length; ++i) {
         str += "00";
@@ -511,6 +383,202 @@ Wanwan.prototype.Hexify = function(argvec) {
     }
     return str;
 }
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////
+///////////// WanwanClient - controls network interactions with the server
+
+function WanwanClient(cgiURL) {
+    this.index           = 0;
+    this.updateRequest   = null;   
+    this.updateCycleTime = 8500; 
+
+
+    this.url = cgiURL;
+    this.messages = [];
+    this.initialized = false;
+
+    this.userName   = "Anon.";
+    this.channelName = "Lobby";
+
+
+    this.onWANWANMSG  = function(name, message, color){};
+    this.onWANWANOKAY = function(){};
+    this.onWANWANDENY = function(){};
+    this.onServerResponse = function(){};
+}
+
+// IO just needs to be initialized once.
+WanwanClient.prototype.io = new WanwanIO();
+
+
+
+WanwanClient.prototype.Connect = function() {
+    // send initial request 
+    var out = [];
+    out.push("WANWANSQRY");
+    out.push("" + 0); // version of the client.
+    var str = this.io.Hexify(out);
+    this.SendRequest(str, 'Post');
+
+}
+
+
+// physically send the request to the server
+WanwanClient.prototype.SendRequest = function(str, type) {
+    // basic rundown:
+    // Request JS to run from the WANWAN server
+    // eventually this will populate a single string buffer of hex 
+    // to be encoded / decoded in a correct format.
+    // We should always have an update request active
+    // that the server is serving.
+
+    // posts cancel Updates
+    if (type == 'Update' && this.updateRequest) {
+        this.updateRequest.abort();
+    }
+
+    var ref = this;
+    
+
+
+    var req = new XMLHttpRequest();
+    req.open('POST', this.url+"?", true);
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+            if (req.status == 200) {
+                
+                var respArray = req.responseText.split("\n");
+                for(var i = 0; i < respArray.length; ++i) {
+                    ref.messages.push(respArray[i]);
+                }
+                ref.CheckServer();
+
+                if (!ref.initialized) return;
+                ref.RequestUpdate();
+    
+                // put in messages and resolve messages
+            }
+
+            if (req == ref.updateRequest)
+                ref.updateRequest = null;
+
+            
+        }
+    }
+    req.send(str.length.toString() + "&" + str);
+
+    if (type == 'Update') {
+        ref.updateRequest = req;
+    }
+
+}
+
+
+
+
+// posts a new message to the server
+// (the client wont show those changes until acknowledged from the server
+WanwanClient.prototype.Post = function(message) {
+
+    
+    // form basic message
+    var out = [];
+    out.push("WANWANPOST");
+    out.push(this.userName);
+    out.push(encodeURIComponent(message));
+    out.push(this.channelName);
+
+
+    var str = this.io.Hexify(out);
+    this.SendRequest(str, 'Post');
+
+
+    return true;
+    
+}
+
+
+
+WanwanClient.prototype.RequestUpdate = function() {
+    var out = [];
+    out.push("WANWANUPDT");
+    out.push(this.channelName);
+    out.push(this.index.toString());
+ 
+    var str = this.io.Hexify(out);
+    this.SendRequest(str, 'Update');   
+
+}
+
+
+
+
+
+
+
+
+WanwanClient.prototype.CheckServer = function() {
+
+
+    if (!this.messages.length) return;
+    for(var i = 0; i < this.messages.length; ++i) {
+        if (this.messages[i].length == 0) continue;
+        var packet = this.io.Dehexify(this.messages[i]);
+
+        switch(packet[0]) {
+
+          case "WANWANMSG":
+            if (packet.length != 5) continue;
+            if (this.index >= parseInt(packet[4])) continue;
+            this.onWANWANMSG(
+                packet[1],  // user
+                decodeURIComponent(packet[2]),  // message
+                packet[3]  // color
+            );
+            this.index = parseInt(packet[4]);
+
+            break;
+
+          case "WANWANOKAY":
+            if (this.initialized) continue; // Pretty fishy if you ask me
+
+            // add timeout to get updates
+            var ref = this;
+            setInterval(function(){
+                ref.RequestUpdate();
+            }, ref.updateCycleTime);
+            ref.RequestUpdate();
+
+            this.initialized = true;
+            this.onWANWANOKAY();
+            break;
+
+
+          case "WANWANDENY":
+            if (this.initialized) continue; // also pretty fishy
+            console.log("Wanwan: Client version isn't supported.");
+            this.onWANWANDENY();
+            break;
+
+          default:;
+
+        }      
+
+    }
+    this.onServerResponse();
+    this.messages = [];
+};
+
 
 
 
