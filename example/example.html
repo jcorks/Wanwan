@@ -37,13 +37,15 @@
     <script type="text/javascript" src= "example-helper.js"?></script>
     <script>
 
-        Wanwan.Name("Potato");
-        Wanwan.Channel("Lobby");
+        var wanwanClient = new Wanwan("http://127.0.0.1/bin/core.wanwan");    
+
+        wanwanClient.Name("Potato");
+        wanwanClient.Channel("Lobby");
 
         // we're going to make it so that 
         // any time the browser receives a message, we'll post it 
         // to the "output" div.
-        Wanwan.Bind("server-message", ShowMessage);
+        wanwanClient.Bind("server-message", ShowMessage);
 
 
 
@@ -56,12 +58,13 @@
         ShowMessage("*", "", "rgb(0, 255, 255)");
         ShowMessage("*", "Continue?", "rgb(0, 255, 255)");
 
-        Ask(onresponse=function(response){
+        Ask(client = wanwanClient,
+            onresponse=function(response){
             if (response == "yes" ||
                 response == "y"   ||
                 response == "ok"  ||
                 response == "continue") {
-                Wanwan.Start("http://localhost/bin/core.wanwan");
+                wanwanClient.Start("http://localhost/bin/core.wanwan");
             } else {
                 ShowMessage("*", "Ok...", "rgb(0, 255, 255);");
             }
