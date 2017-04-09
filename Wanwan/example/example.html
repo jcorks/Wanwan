@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head></head><title>Test</title>
+<meta charset="utf-8">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+<meta name="viewport" content="width=device-width, initial-scale=.5">
+
+<body 
+      style="background-color: #555 ;color: #CCC;">
+    <div  style="font-family: monospace; font-size: 12pt;">
+
+    <!-- this is where any output will appear -->
+    <div id="output">
+
+    </div>
+    <div>
+        <input type="text" id="nameEntry" 
+            style="color: #DDD; background: rgb(100, 100, 100); 
+                   border: none; width: 15%; outline: none;
+                   float: left;
+                   height:30px;
+                   "
+            value="Potato"></input>
+
+        <input type="text" id="command" 
+            style="color: #DDD; background: rgba(0, 0, 0, 1.0); 
+                   border: none; width: 78%; outline: none;                   float: left;
+                   height:30px;
+                   "
+            onkeydown = "SendMessage(event)"></input>
+        </div>
+    </div>
+
+
+    <script type="text/javascript" src= "wanwan.min.js"></script>
+    <script type="text/javascript" src= "example-helper.js"?></script>
+    <script>
+
+        var wanwanClient = new Wanwan("http://127.0.0.1/bin/core.wanwan");    
+
+        wanwanClient.Name("Potato");
+        wanwanClient.Channel("Lobby");
+
+        // we're going to make it so that 
+        // any time the browser receives a message, we'll post it 
+        // to the "output" div.
+        wanwanClient.Bind("server-message", ShowMessage);
+
+
+
+        // This is just for liability reasons.  
+        // otherwise, you can just start i guess.
+        ShowMessage("*", "Welcome to the Wanwan chat demo!", "rgb(0, 255, 255)");
+        ShowMessage("*", "Please note that this is a live demo and that anyone can join as anyone else.", "rgb(0, 255, 255)");
+        ShowMessage("*", "As such, by joining this, you agree to and acknowledge that the developers of Wanwan are not liable for any effects from the user content of this chat program.", "rgb(0, 255, 255)");
+        ShowMessage("*", "You also must be above 18 years of age to use this.", "rgb(0, 255, 255)");
+        ShowMessage("*", "", "rgb(0, 255, 255)");
+        ShowMessage("*", "Continue?", "rgb(0, 255, 255)");
+
+        Ask(client = wanwanClient,
+            onresponse=function(response){
+            if (response == "yes" ||
+                response == "y"   ||
+                response == "ok"  ||
+                response == "continue") {
+                wanwanClient.Start("http://localhost/bin/core.wanwan");
+            } else {
+                ShowMessage("*", "Ok...", "rgb(0, 255, 255);");
+            }
+        });
+
+
+    </script>
+
+
+    
+
+
+
+</body>
