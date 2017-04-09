@@ -32,7 +32,7 @@
                    float: left;
                    height:30px;
                    "
-            onkeydown = "SendMessage(event)"></input>
+            onkeydown = "SendMessage(event);"></input>
         </div>
     </div>
 
@@ -40,6 +40,7 @@
 
     <!-- Management setup.t -->
     <script>
+        var wanwanClient = new Wanwan("http://127.0.0.1/bin/core.wanwan");
 
         // In this example, let's jus 
         var canvasElement = document.getElementById("canvas"); 
@@ -47,12 +48,12 @@
         canvasElement.height = (window.innerHeight - 70);
 
         // Lets setup some initial attributes of the canvas
-        canvas = new WanwanCanvas(Wanwan);
+        canvas = new WanwanCanvas(wanwanClient);
         canvas.Font      = "monospace";
         canvas.FontSize  = "12pt";
         canvas.Element   = canvasElement;
 
-        Wanwan.Bind("server-deny",
+        wanwanClient.Bind("server-deny",
             function(){
                 canvas.PostMessage("*", "This client is unsupported for the given server.", "rgb(255, 0, 0)");
             }
@@ -75,12 +76,13 @@
         canvas.PostMessage("*", "Continue?", "rgb(0, 255, 255)");
 
 
-        Ask(onresponse=function(response){
+        Ask(client=wanwanClient,
+            onresponse=function(response){
             if (response == "yes" ||
                 response == "y"   ||
                 response == "ok"  ||
                 response == "continue") {
-                Wanwan.Start("http://127.0.0.1/bin/core.wanwan");
+                wanwanClient.Start();
             } else {
                 canvas.PostMessage("*", "Ok...", "rgb(0, 255, 255);");
             }

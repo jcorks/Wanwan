@@ -94,7 +94,9 @@ function WanwanCanvas(ww) {
 
     ww.Bind("server-message", function(user, message, color, animationName){
         ref.PostMessage(user, message, color);
+        return true;
     });
+
 
     this.Offscreen = document.createElement('canvas');
     this.Properties = {};
@@ -103,9 +105,6 @@ function WanwanCanvas(ww) {
     this.Text = [];
     this.yToText = [];
 }
-
-
-
 
 
 

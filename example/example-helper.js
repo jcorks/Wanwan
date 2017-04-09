@@ -8,11 +8,11 @@
 SendMessage = function(event) {
     if (event.keyCode == 13) {
         
-        Wanwan.Name(textContent = document.getElementById("nameEntry").value); 
+        client.Name(textContent = document.getElementById("nameEntry").value); 
         textContent = document.getElementById("command").value; 
         document.getElementById("command").value = "";
 
-        Wanwan.Send(textContent);
+        client.Send(textContent);
     }
 }
 
@@ -42,12 +42,12 @@ ShowMessage = function(user, message, color) {
 
 // Asks whether the user wants to continue. The response 
 // is processed by the "onresponse" function given.
-Ask = function(onresponse) {
+Ask = function(client, onresponse) {
 
     var realSendMessage = SendMessage;
     SendMessage = function(event) {
         if (event.keyCode == 13) {
-            Wanwan.Name(textContent = document.getElementById("nameEntry").value); 
+            client.Name(textContent = document.getElementById("nameEntry").value); 
             textContent = document.getElementById("command").value; 
             document.getElementById("command").value = "";
 
